@@ -505,10 +505,12 @@ setView(q !== null ? +q : 0);
 
 def main() -> int:
     payload = build_payload()
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(TEMPLATE.replace("__PAYLOAD__", json.dumps(payload)))
-    size_kb = OUT.stat().st_size / 1024
-    print(f"Wrote {OUT} ({size_kb:.0f} KB, {len(payload['views'])} scenes)")
+    html = TEMPLATE.replace("__PAYLOAD__", json.dumps(payload))
+    # docs/index.html is the GitHub Pages copy; writeup/story/ is canonical.
+    for out in (OUT, Path("docs/index.html")):
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(html)
+        print(f"Wrote {out} ({out.stat().st_size / 1024:.0f} KB, {len(payload['views'])} scenes)")
     return 0
 
 
