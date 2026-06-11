@@ -1,0 +1,94 @@
+{
+  "hiring_lab": {
+    "source": "hiring_lab",
+    "fetched_at": "2026-06-11T00:26:12",
+    "raw_files": [
+      "data/raw/hiring_lab/2026-06-11/aggregate_postings.csv",
+      "data/raw/hiring_lab/2026-06-11/postings_by_sector.csv",
+      "data/raw/hiring_lab/2026-06-11/ai_postings.csv"
+    ],
+    "processed_files": [
+      "data/processed/hiring_lab_aggregate_postings.parquet",
+      "data/processed/hiring_lab_postings_by_sector.parquet",
+      "data/processed/hiring_lab_ai_postings.parquet"
+    ],
+    "rows": {
+      "aggregate_postings": 4634,
+      "postings_by_sector": 171458,
+      "ai_postings": 24372
+    },
+    "notes": ""
+  },
+  "btos": {
+    "source": "btos",
+    "fetched_at": "2026-06-11T00:28:57",
+    "raw_files": [
+      "data/raw/btos/2026-06-11/National.xlsx"
+    ],
+    "processed_files": [
+      "data/processed/btos_national_response_estimates.parquet",
+      "data/processed/btos_national_response_standard_errors.parquet",
+      "data/processed/btos_national_index_estimates.parquet",
+      "data/processed/btos_national_index_standard_errors.parquet",
+      "data/processed/btos_national_collection_and_reference_dates.parquet",
+      "data/processed/btos_national_data_dictionary.parquet"
+    ],
+    "rows": {
+      "national_response_estimates": 85,
+      "national_response_standard_errors": 85,
+      "national_index_estimates": 17,
+      "national_index_standard_errors": 17,
+      "national_collection_and_reference_dates": 83,
+      "national_data_dictionary": 14
+    },
+    "notes": ""
+  },
+  "oews": {
+    "source": "oews",
+    "fetched_at": "2026-06-11T00:26:13",
+    "raw_files": [
+      "data/raw/oews/2026-06-11/oesm25nat.zip"
+    ],
+    "processed_files": [
+      "data/processed/oews_design_occupations.parquet"
+    ],
+    "rows": {
+      "design_occupations": 6
+    },
+    "notes": ""
+  },
+  "aei": {
+    "source": "aei",
+    "fetched_at": "2026-06-11T00:26:17",
+    "raw_files": [
+      "/Users/shannonhosmer/Code/des-sim/data/raw/aei/2026-06-11/release_2026_03_24/data/aei_raw_1p_api_2026-02-05_to_2026-02-12.csv",
+      "/Users/shannonhosmer/Code/des-sim/data/raw/aei/2026-06-11/release_2026_03_24/data/aei_raw_claude_ai_2026-02-05_to_2026-02-12.csv",
+      "/Users/shannonhosmer/Code/des-sim/data/raw/aei/2026-06-11/release_2026_03_24/data_documentation.md"
+    ],
+    "processed_files": [
+      "data/processed/aei_aei_raw_1p_api_2026-02-05_to_2026-02-12.parquet",
+      "data/processed/aei_aei_raw_claude_ai_2026-02-05_to_2026-02-12.parquet"
+    ],
+    "rows": {
+      "aei_raw_1p_api_2026-02-05_to_2026-02-12": 195156,
+      "aei_raw_claude_ai_2026-02-05_to_2026-02-12": 477717
+    },
+    "notes": "Pulled release_2026_03_24"
+  },
+  "layoffs_fyi": {
+    "source": "layoffs_fyi",
+    "fetched_at": "2026-06-11T00:26:17",
+    "raw_files": [],
+    "processed_files": [],
+    "rows": {},
+    "notes": "No export found at data/manual/layoffs_fyi.csv. Download the CSV from the layoffs.fyi Airtable view and drop it there, then re-run."
+  },
+  "levels_fyi": {
+    "source": "levels_fyi",
+    "fetched_at": "2026-06-11T00:26:17",
+    "raw_files": [],
+    "processed_files": [],
+    "rows": {},
+    "notes": "LEVELS_FYI_API_KEY not set. Request access at https://www.levels.fyi/api-access/, then implement the Product Designer endpoints in this adapter."
+  }
+}

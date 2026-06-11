@@ -1,0 +1,152 @@
+"""Calibration targets: named series the model must reproduce.
+
+Each function reads data/processed/*.parquet (produced by `des-sim-ingest pull`)
+and returns a tidy DataFrame. These are the empirical series simulation runs
+get scored against.
+"""
+from __future__ import annotations
+
+from pathlib import Path
+
+import pandas as pd
+
+PROCESSED = Path("data/processed")
+
+# Indeed sector taxonomy has no "design" sector; these four carry most
+# design-role postings (product/UX in software, visual in marketing/media).
+DESIGN_ADJACENT_SECTORS = [
+    "Software Development",
+    "Marketing",
+    "Media & Communications",
+    "Arts & Entertainment",
+]
+
+# Keyword net for design-related O*NET task statements in the AEI data.
+DESIGN_TASK_KEYWORDS = (
+    "design|graphic|user experience|user interface|wireframe|prototype|mockup|usability"
+)
+
+
+def _read(name: str) -> pd.DataFrame:
+    path = PROCESSED / name
+    if not path.exists():
+        raise FileNotFoundError(f"{path} not found — run `des-sim-ingest pull` first")
+    return pd.read_parquet(path)
+
+
+def design_postings_index() -> pd.DataFrame:
+    """Indeed postings index for design-adjacent sectors, long format.
+
+    Index is relative to Feb 1, 2020 = 100. Weekly cadence.
+    """
+    df = _read("hiring_lab_postings_by_sector.parquet")
+    out = df[df["display_name"].isin(DESIGN_ADJACENT_SECTORS)].copy()
+    return out[["date", "display_name", "indeed_job_postings_index"]].rename(
+        columns={"display_name": "sector", "indeed_job_postings_index": "postings_index"}
+    )
+
+
+def ai_postings_share() -> pd.DataFrame:
+    """Share of US job postings mentioning AI/GenAI terms. Daily, monthly refresh."""
+    df = _read("hiring_lab_ai_postings.parquet")
+    return df[["date", "ai_share_postings"]]
+
+
+def btos_ai_adoption() -> pd.DataFrame:
+    """Share of businesses answering Yes to 'used AI in the last two weeks'.
+
+    Period codes are YYYYCC (CC = biweekly cycle within the year); the date
+    column is an approximation (cycle midpoint), good enough for curve fitting.
+    """
+    est = _read("btos_national_response_estimates.parquet")
+    ai_rows = est[
+        est["Question"].astype(str).str.contains("artificial intelligence", case=False, na=False)
+        & est["Answer"].astype(str).str.strip().str.lower().eq("yes")
+    ]
+    if ai_rows.empty:
+        raise ValueError("No AI-use question found in BTOS estimates; check sheet contents")
+    period_cols = [c for c in est.columns if str(c).isdigit() and len(str(c)) == 6]
+    long = ai_rows.melt(
+        id_vars=["Question"], value_vars=period_cols, var_name="period", value_name="share"
+    )
+    # Suppressed cells appear as "." or "S"; coerce them to NaN.
+    long["share"] = pd.to_numeric(long["share"].astype(str).str.rstrip("%"), errors="coerce") / 100
+    year = long["period"].str[:4].astype(int)
+    cycle = long["period"].str[4:].astype(int)
+    long["date"] = pd.to_datetime(year.astype(str)) + pd.to_timedelta((cycle - 1) * 14 + 7, "D")
+    return long.dropna(subset=["share"]).sort_values("date")[["date", "share", "Question"]]
+
+
+def aei_design_task_usage(geo_id: str = "GLOBAL") -> pd.DataFrame:
+    """Claude usage share of design-related O*NET tasks (latest AEI release)."""
+    df = _aei()
+    tasks = df[
+        (df["facet"] == "onet_task")
+        & (df["variable"] == "onet_task_pct")
+        & (df["geo_id"] == geo_id)
+    ]
+    mask = tasks["cluster_name"].astype(str).str.contains(DESIGN_TASK_KEYWORDS, case=False)
+    out = tasks[mask][["geo_id", "cluster_name", "value"]].rename(
+        columns={"cluster_name": "task", "value": "usage_pct"}
+    )
+    return out.sort_values("usage_pct", ascending=False)
+
+
+def aei_collaboration_split() -> pd.DataFrame:
+    """Automation vs augmentation interaction-mode shares (latest AEI release).
+
+    Directive and feedback-loop modes count as automation; learning,
+    task-iteration, and validation as augmentation.
+    """
+    df = _aei()
+    collab = df[
+        (df["facet"] == "collaboration")
+        & (df["variable"] == "collaboration_pct")
+        & (df["geo_id"] == "GLOBAL")
+    ]
+    out = collab[["geo_id", "cluster_name", "value"]].rename(
+        columns={"cluster_name": "mode", "value": "pct"}
+    )
+    automation = {"directive", "feedback loop"}
+    out["grouping"] = out["mode"].astype(str).str.lower().map(
+        lambda m: "automation" if m in automation else "augmentation"
+    )
+    return out
+
+
+def oews_anchors() -> pd.DataFrame:
+    """Employment counts and wage distribution anchors for design SOC codes."""
+    df = _read("oews_design_occupations.parquet")
+    cols = [c for c in ("OCC_CODE", "OCC_TITLE", "TOT_EMP", "A_MEDIAN", "A_PCT10", "A_PCT90") if c in df.columns]
+    return df[cols]
+
+
+def _aei() -> pd.DataFrame:
+    matches = sorted(PROCESSED.glob("aei_aei_raw_claude_ai_*.parquet"))
+    if not matches:
+        raise FileNotFoundError("No AEI claude_ai parquet found — run `des-sim-ingest pull aei`")
+    return pd.read_parquet(matches[-1])
+
+
+def summary() -> str:
+    """One-screen text summary of all targets, for eyeballing against sim output."""
+    lines = []
+    postings = design_postings_index()
+    latest = postings.sort_values("date").groupby("sector").tail(1)
+    lines.append("Indeed postings index (Feb 2020 = 100), latest:")
+    for _, r in latest.iterrows():
+        lines.append(f"  {r['sector']:<28} {r['postings_index']:.1f}")
+    ai = ai_postings_share()
+    lines.append(f"AI-mention share of postings: {ai['ai_share_postings'].iloc[-1]:.2f}% ({ai['date'].iloc[-1]:%Y-%m-%d})")
+    btos = btos_ai_adoption()
+    lines.append(f"BTOS firms using AI: {btos['share'].iloc[-1]:.1%} ({btos['date'].iloc[-1]:%Y-%m-%d})")
+    split = aei_collaboration_split()
+    g = split.groupby("grouping")["pct"].sum()
+    lines.append(f"AEI interaction modes: automation {g.get('automation', 0):.0f}%, augmentation {g.get('augmentation', 0):.0f}%")
+    for _, r in oews_anchors().iterrows():
+        lines.append(f"OEWS {r['OCC_CODE']} {r['OCC_TITLE']}: {r['TOT_EMP']:,.0f} employed, median ${r['A_MEDIAN']:,.0f}")
+    return "\n".join(lines)
+
+
+if __name__ == "__main__":
+    print(summary())
