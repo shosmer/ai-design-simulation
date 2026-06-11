@@ -116,57 +116,101 @@ def build_payload() -> dict:
     jr_lo, jr_hi = jr_eps[1.0][end], jr_eps[2.0][end]
     tot_lo, tot_hi = tot_eps[1.0][end], tot_eps[2.0][end]
     pr_lo, pr_hi = prem_eps[2.0][end], prem_eps[1.0][end]
+    jr_lo_pct = round((1 - jr_lo) * 100)       # "X% fewer juniors"
+    jr_hi_pct = round((jr_hi - 1) * 100)       # "X% more juniors"
+    tot_lo_pct = round((1 - tot_lo) * 100)
+    tot_hi_pct = round((tot_hi - 1) * 100)
 
     steps = [
         {"view": 0, "html": (
-            "<h3>27 simulated futures</h3><p>We modeled the tech design labor "
-            "market from 2023 to 2035 — thousands of simulated designers, 150 "
-            "firms routing work between humans and AI, wages, promotions, and a "
-            "talent pipeline. Every run is measured against a paired world where "
-            "AI never happened: the dashed line.</p>")},
+            "<h3>First, meet the dashed line</h3>"
+            "<p>We built a working model of the tech design job market: "
+            "thousands of simulated designers, 150 companies deciding every "
+            "month which work goes to people, to people working with AI, or to "
+            "AI alone. Then we ran that world 27 times, with different "
+            "assumptions and different luck.</p>"
+            "<p class='note'><b>How to read this chart:</b> the dashed line is "
+            "a parallel world where AI never showed up. Everything that follows "
+            "is measured against it — 1.0x means “exactly as many design "
+            "jobs as there would have been anyway.” Above the line, AI "
+            "added jobs. Below it, AI cost jobs. This lets us separate AI's "
+            "effect from everything else (like the tech downturn that started "
+            "before the AI boom).</p>")},
         {"view": 1, "html": (
-            "<h3>First question: does AI speed matter?</h3><p>Three capability "
-            "scenarios — <b style='color:#9ec5af'>slow</b>, "
-            "<b style='color:#5d9b84'>base</b>, <b style='color:#2f7561'>fast</b> "
-            "— spanning a nearly 4x range in how much design work AI can do "
-            "today, anchored to measured usage data. Watch the junior lines.</p>")},
+            "<h3>Question one: does it matter how fast AI gets good?</h3>"
+            "<p>This is the thing everyone argues about — how capable the "
+            "models are, how quickly they're improving. So we ran three "
+            "versions of the future: AI improves "
+            "<b style='color:#9ec5af'>slowly</b>, "
+            "<b style='color:#5d9b84'>moderately</b>, or "
+            "<b style='color:#2f7561'>fast</b>. The gap between them is wide — "
+            "the “fast” world starts with AI doing nearly four times "
+            "as much design work as the “slow” one.</p>"
+            "<p class='note'>The lines track <b>junior designers</b> — the "
+            "entry-level jobs people worry about most. Each line is the middle "
+            "outcome of nine runs of that scenario.</p>")},
         {"view": 2, "html": (
-            f"<h3>They barely separate.</h3><p>By 2035 the three medians land "
-            f"within a few points of each other "
-            f"({jr_scn['slow'][end]:.2f}x–{jr_scn['fast'][end]:.2f}x). The speed "
-            f"of AI progress — the thing we argue about most — is not what "
-            f"decides designers' fate.</p>")},
+            f"<h3>Surprisingly little.</h3>"
+            f"<p>By 2035, the slow, moderate, and fast worlds all end up within "
+            f"a few percentage points of each other. The speed of AI progress — "
+            f"the thing we argue about most — turns out to be a side plot.</p>"
+            f"<p class='note'><b>What this does not say:</b> it doesn't say AI "
+            f"has no effect on design jobs. It says the <i>size</i> of that "
+            f"effect is decided by something other than how fast the technology "
+            f"improves. Keep scrolling for what that something is.</p>")},
         {"view": 3, "html": (
-            f"<h3>Now regroup the same runs.</h3><p>Same simulations, grouped "
-            f"instead by <b>demand elasticity</b> — when design gets cheaper, "
-            f"does the world consume more of it? The lines tear apart: "
-            f"<b style='color:#bf4633'>{jr_lo:.2f}x</b> juniors in the inelastic "
-            f"world, <b style='color:#2e6f9e'>{jr_hi:.2f}x</b> in the elastic "
-            f"one. Same AI. Opposite outcomes.</p>")},
+            f"<h3>The variable that matters: appetite</h3>"
+            f"<p>These are the <b>exact same 27 runs</b>, regrouped by a "
+            f"different question: <i>when design gets cheaper, does the world "
+            f"simply buy more of it?</i> (Economists call this demand "
+            f"elasticity. Think of it as the world's appetite for design.)</p>"
+            f"<p>Now the lines tear apart. In the "
+            f"<b style='color:#bf4633'>fixed-appetite world</b>, companies "
+            f"pocket the savings and cut roles: about {jr_lo_pct}% fewer junior "
+            f"designers than a world without AI. In the "
+            f"<b style='color:#2e6f9e'>growing-appetite world</b>, cheaper "
+            f"design means more things get designed — {jr_hi_pct}% <i>more</i> "
+            f"junior jobs. Same AI. Opposite outcomes.</p>")},
         {"view": 4, "html": (
-            "<h3>The full spread</h3><p>The band is every run — every scenario, "
-            "elasticity, and random seed. Almost all of the spread is "
-            "elasticity. The fork in the road isn't how good AI gets; it's "
-            "whether cheaper design expands what gets designed.</p>")},
+            "<h3>Every future we found</h3>"
+            "<p>The shaded band shows every single run — best case to worst, "
+            "every assumption, every roll of the dice. Nearly all of that "
+            "spread comes from appetite, not from AI's speed.</p>"
+            "<p class='note'><b>What the model can say:</b> the range of "
+            "plausible futures, and which lever moves you between them. "
+            "<b>What it can't say:</b> which future we'll actually get. Treat "
+            "the band as the honest answer.</p>")},
         {"view": 5, "html": (
-            f"<h3>The equity twist</h3><p>In the world that's bad for juniors, "
-            f"senior designers get scarce and expensive — the wage premium "
-            f"climbs from about 2.1x today to "
-            f"<b style='color:#bf4633'>{pr_hi:.1f}x</b>. In the elastic world it "
-            f"compresses to <b style='color:#2e6f9e'>{pr_lo:.1f}x</b> as demand "
-            f"pulls people up the ladder.</p>")},
+            f"<h3>What happens to paychecks</h3>"
+            f"<p>Same worlds, now viewed through wages. Today a senior designer "
+            f"earns about 2.1x what a junior earns. In the "
+            f"<b style='color:#bf4633'>fixed-appetite world</b>, juniors get "
+            f"scarce, seniors get expensive, and the gap climbs past "
+            f"{pr_hi:.1f}x. In the <b style='color:#2e6f9e'>growing-appetite "
+            f"world</b>, hiring pulls people up the ladder and the gap narrows "
+            f"to about {pr_lo:.1f}x.</p>"
+            f"<p class='note'>This is why the debate feels so muddled: bad news "
+            f"for juniors is quietly <i>good</i> news for senior paychecks. "
+            f"Different people are living in different charts.</p>")},
         {"view": 6, "html": (
-            f"<h3>Whole-market stakes</h3><p>Total design employment spans "
-            f"<b style='color:#bf4633'>{tot_lo:.2f}x</b> to "
-            f"<b style='color:#2e6f9e'>{tot_hi:.2f}x</b> of the no-AI world by "
-            f"2035. The same automation either shrinks the profession or grows "
-            f"it by half — depending on appetite, not capability.</p>")},
+            f"<h3>The whole profession, one chart</h3>"
+            f"<p>Counting every designer — junior through senior — the same AI "
+            f"either shrinks the field by about {tot_lo_pct}% or grows it by "
+            f"about {tot_hi_pct}%. The difference isn't the technology. It's "
+            f"whether cheaper design expands what gets designed.</p>")},
         {"view": 7, "html": (
-            "<h3>Which world are we in?</h3><p>Three years of real data can't "
-            "yet say — which is why these are ranges, not predictions. But "
-            "elasticity isn't weather. Every team that treats AI as a reason to "
-            "design <i>more</i> — rather than a reason to design with fewer "
-            "people — is voting for the blue world.</p>")},
+            "<h3>So which world are we in?</h3>"
+            "<p>Honestly: the real-world data can't tell us yet. We tested the "
+            "model against three years of job postings and government surveys "
+            "of AI adoption, and that history fits several of these futures "
+            "about equally well. Anyone giving you one confident number about "
+            "design jobs in 2035 is guessing.</p>"
+            "<p class='note'><b>The part that isn't a guess:</b> appetite isn't "
+            "weather. Every team that treats AI as a reason to design "
+            "<i>more</i> — more products, more experiments, more polish — "
+            "rather than a reason to design with fewer people, is voting for "
+            "the blue world. This page rebuilds from fresh data as the picture "
+            "sharpens.</p>")},
     ]
 
     return {"x": x, "xDomain": [X_START, X_END], "views": views, "steps": steps}
@@ -212,6 +256,12 @@ TEMPLATE = """<!DOCTYPE html>
   .step.active .card { opacity: 1; }
   .card h3 { font-size: 1.18rem; margin-bottom: .55rem; }
   .card p { font-size: .98rem; }
+  .card p + p { margin-top: .6rem; }
+  .card .note {
+    margin-top: .85rem; padding-top: .75rem; border-top: 1px solid var(--rule);
+    font-size: .84rem; color: var(--muted);
+    font-family: -apple-system, 'Helvetica Neue', sans-serif; line-height: 1.5;
+  }
   footer { max-width: 720px; margin: 0 auto; padding: 6vh 24px 14vh;
            color: var(--muted); font-size: .82rem;
            font-family: -apple-system, 'Helvetica Neue', sans-serif; }
