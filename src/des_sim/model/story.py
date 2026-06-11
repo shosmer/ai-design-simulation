@@ -9,6 +9,7 @@ screenshots and debugging).
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 import pandas as pd
@@ -115,6 +116,42 @@ def build_payload() -> dict:
              metric="Junior designers employed — the open question"),
     ]
 
+    # Insert the measured input-price scene before the elasticity regroup.
+    # AI line: Stanford AI Index 2025 — inference price at GPT-3.5-level
+    # capability fell $20 -> $0.07 per million tokens, Nov 2022 -> Oct 2024
+    # (~280x over 23 months). Drawn as the implied exponential, indexed to
+    # Jan 2023 = 100, ending at the measurement boundary.
+    rate = math.log(0.07 / 20.0) / 23.0  # per month
+    ai_months = 22  # Jan 2023 .. Oct 2024
+    ai_x = [round(2023 + (m + 0.5) / 12, 4) for m in range(ai_months)]
+    ai_vals = [round(100 * math.exp(rate * m), 3) for m in range(ai_months)]
+    ai_drop_pct = round(100 - ai_vals[-1], 1)
+
+    price_extras = [
+        {"x": ai_x, "values": ai_vals, "color": "#211d18",
+         "label": f"AI output −{ai_drop_pct:.0f}%"}
+    ]
+    wage_pct_text = "a few percent"
+    wage_parquet = Path("data/processed/ai_prices_wage_index.parquet")
+    if wage_parquet.exists():
+        eci = pd.read_parquet(wage_parquet)
+        eci = eci[eci["date"] >= "2023-01-01"].sort_values("date")
+        wage_vals = [round(v / eci["value"].iloc[0] * 100, 2) for v in eci["value"]]
+        wage_x = [round(d.year + (d.month - 0.5) / 12, 4) for d in eci["date"]]
+        wage_pct = round(wage_vals[-1] - 100)
+        wage_pct_text = f"up about {wage_pct}%"
+        price_extras.append(
+            {"x": wage_x, "values": wage_vals, "color": "#7a7065",
+             "label": f"U.S. wages +{wage_pct}%"}
+        )
+    views.insert(3, dict(
+        y=[0, 118], ticks=[0, 25, 50, 75, 100], fmt="plain",
+        ref=100.0, refLabel="Jan 2023 = 100",
+        series=series_eps(jr_eps, hidden=True), band=None, ann=[],
+        metric="Measured input prices: AI output (fixed quality) vs U.S. wages",
+        extras=price_extras,
+    ))
+
     # 8 — measured reality: the elasticity-evidence ratio, if data is pulled
     evidence = None
     try:
@@ -134,9 +171,9 @@ def build_payload() -> dict:
             dict(**y_ratio, ref=1.0, refLabel="2023 baseline",
                  series=series_eps(jr_eps, hidden=True), band=None, ann=[],
                  metric="Measured, not simulated: designed output shipped ÷ design hiring",
-                 extra={"x": evidence["x"], "values": evidence["values"],
-                        "color": "#211d18",
-                        "label": f"{evidence['latest']} and {evidence['trend']}"})
+                 extras=[{"x": evidence["x"], "values": evidence["values"],
+                          "color": "#211d18",
+                          "label": f"{evidence['latest']} and {evidence['trend']}"}])
         )
     except FileNotFoundError:
         pass
@@ -187,27 +224,33 @@ def build_payload() -> dict:
             f"effect is decided by something other than how fast the technology "
             f"improves. Keep scrolling for what that something is.</p>")},
         {"view": 3, "html": (
+            f"<h3>One input is in free fall</h3>"
+            f"<p>Before asking what AI does to design jobs, watch prices — "
+            f"<b>measured, not simulated</b>. The black line is the cost of AI "
+            f"output at a fixed quality level: down ~{ai_drop_pct:.0f}% in "
+            f"under two years (roughly 280x). The gray line is U.S. wages over "
+            f"the same window: {wage_pct_text}. Design work is made from these "
+            f"two inputs, and one of them is collapsing in price.</p>"
+            f"<p class='note'><b>Careful with that 280x:</b> tokens are not "
+            f"finished design. The real cost of AI design work includes the "
+            f"human time to direct and review it, which falls far more slowly. "
+            f"Read direction and slope, not arithmetic. Sources: Stanford AI "
+            f"Index 2025; Employment Cost Index.</p>")},
+        {"view": 4, "html": (
             f"<h3>The variable that matters: appetite</h3>"
             f"<p>These are the <b>exact same 27 runs</b>, regrouped by a "
-            f"different question: <i>when design gets cheaper, does the world "
-            f"simply buy more of it?</i> (Economists call this demand "
-            f"elasticity. Think of it as the world's appetite for design.)</p>"
-            f"<p>And design <i>is</i> getting cheaper — fast. The raw cost of "
-            f"AI output at a fixed quality level fell roughly <b>280x in 18 "
-            f"months</b>; designer salaries moved a few percent. One input to "
-            f"design work is in free fall while the other is static.</p>"
+            f"different question: <i>when design gets cheaper — and you just "
+            f"watched how much cheaper — does the world simply buy more of "
+            f"it?</i> (Economists call this demand elasticity. Think of it as "
+            f"the world's appetite for design.)</p>"
             f"<p>Now the lines tear apart. In the "
             f"<b style='color:#bf4633'>fixed-appetite world</b>, companies "
             f"pocket the savings and cut roles: about {jr_lo_pct}% fewer junior "
             f"designers than a world without AI. In the "
             f"<b style='color:#2e6f9e'>growing-appetite world</b>, cheaper "
             f"design means more things get designed — {jr_hi_pct}% <i>more</i> "
-            f"junior jobs. Same AI. Opposite outcomes.</p>"
-            f"<p class='note'><b>Careful with that 280x:</b> tokens are not "
-            f"finished design. The real cost of AI design work includes the "
-            f"human time to direct and review it, which falls far more slowly. "
-            f"Read it as direction and slope, not arithmetic.</p>")},
-        {"view": 4, "html": (
+            f"junior jobs. Same AI. Opposite outcomes.</p>")},
+        {"view": 5, "html": (
             "<h3>Every future we found</h3>"
             "<p>The shaded band shows every single run — best case to worst, "
             "every assumption, every roll of the dice. Nearly all of that "
@@ -216,7 +259,7 @@ def build_payload() -> dict:
             "plausible futures, and which lever moves you between them. "
             "<b>What it can't say:</b> which future we'll actually get. Treat "
             "the band as the honest answer.</p>")},
-        {"view": 5, "html": (
+        {"view": 6, "html": (
             f"<h3>What happens to paychecks</h3>"
             f"<p>Same worlds, now viewed through wages. Today a senior designer "
             f"earns about 2.1x what a junior earns. In the "
@@ -228,13 +271,13 @@ def build_payload() -> dict:
             f"<p class='note'>This is why the debate feels so muddled: bad news "
             f"for juniors is quietly <i>good</i> news for senior paychecks. "
             f"Different people are living in different charts.</p>")},
-        {"view": 6, "html": (
+        {"view": 7, "html": (
             f"<h3>The whole profession, one chart</h3>"
             f"<p>Counting every designer — junior through senior — the same AI "
             f"either shrinks the field by about {tot_lo_pct}% or grows it by "
             f"about {tot_hi_pct}%. The difference isn't the technology. It's "
             f"whether cheaper design expands what gets designed.</p>")},
-        {"view": 7, "html": (
+        {"view": 8, "html": (
             "<h3>So which world are we in?</h3>"
             "<p>Honestly: the historical data can't settle it. We tested the "
             "model against three years of job postings and government surveys "
@@ -253,7 +296,7 @@ def build_payload() -> dict:
             "falling": "The early evidence leans, gently, red.",
             "flat": "So far, it refuses to pick a side.",
         }[evidence["trend"]]
-        steps.append({"view": 8, "html": (
+        steps.append({"view": len(views) - 1, "html": (
             f"<h3>But we can watch the answer arrive</h3>"
             f"<p>There is one early signal, and this line is it — <b>measured, "
             f"not simulated</b>. Count the designed products actually shipping "
@@ -433,8 +476,11 @@ for (let s = 0; s < 3; s++) {
   seriesEls.push(el('path', {class: 'series'}));
   endEls.push(el('text', {class: 'endlabel'}));
 }
-const extraEl = el('path', {class: 'series', 'stroke-width': 2.8, opacity: 0});
-const extraLbl = el('text', {class: 'endlabel', opacity: 0});
+const extraEls = [], extraLbls = [];
+for (let s = 0; s < 2; s++) {
+  extraEls.push(el('path', {class: 'series', 'stroke-width': 2.8, opacity: 0}));
+  extraLbls.push(el('text', {class: 'endlabel', opacity: 0}));
+}
 const gAnn = el('g');
 
 // state
@@ -453,7 +499,7 @@ function drawTicks(view) {
     const y = Y(tv, view.y);
     el('line', {class: 'gridline', x1: M.l, x2: W - M.r, y1: y, y2: y}, gGrid);
     const t = el('text', {x: M.l - 8, y: y + 4, 'text-anchor': 'end'}, gGrid);
-    t.textContent = tv.toFixed(1) + 'x';
+    t.textContent = view.fmt === 'plain' ? String(tv) : tv.toFixed(1) + 'x';
   }
 }
 function drawAnn(view) {
@@ -491,17 +537,20 @@ function render(state, view) {
     bandEl.setAttribute('d', areaPath(state.band.lo, state.band.hi, state.dom));
     bandEl.style.opacity = 1;
   } else bandEl.style.opacity = 0;
-  if (view.extra) {
-    extraEl.setAttribute('d', linePath(view.extra.values, state.dom, view.extra.x));
-    extraEl.setAttribute('stroke', view.extra.color);
-    extraEl.style.opacity = 1;
-    const ex = view.extra.x, evals = view.extra.values;
-    extraLbl.setAttribute('x', X(ex[ex.length - 1]) + 8);
-    extraLbl.setAttribute('y', Y(evals[evals.length - 1], state.dom) + 4);
-    extraLbl.setAttribute('fill', view.extra.color);
-    extraLbl.textContent = view.extra.label;
-    extraLbl.style.opacity = 1;
-  } else { extraEl.style.opacity = 0; extraLbl.style.opacity = 0; }
+  const extras = view.extras || [];
+  for (let s = 0; s < 2; s++) {
+    if (s < extras.length) {
+      const ex = extras[s];
+      extraEls[s].setAttribute('d', linePath(ex.values, state.dom, ex.x));
+      extraEls[s].setAttribute('stroke', ex.color);
+      extraEls[s].style.opacity = 1;
+      extraLbls[s].setAttribute('x', X(ex.x[ex.x.length - 1]) + 8);
+      extraLbls[s].setAttribute('y', Y(ex.values[ex.values.length - 1], state.dom) + 4);
+      extraLbls[s].setAttribute('fill', ex.color);
+      extraLbls[s].textContent = ex.label;
+      extraLbls[s].style.opacity = 1;
+    } else { extraEls[s].style.opacity = 0; extraLbls[s].style.opacity = 0; }
+  }
   const ry = Y(state.ref, state.dom);
   refEl.setAttribute('y1', ry); refEl.setAttribute('y2', ry);
   refLbl.setAttribute('y', ry + 4);

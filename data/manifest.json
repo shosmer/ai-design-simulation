@@ -126,15 +126,18 @@
   },
   "ai_prices": {
     "source": "ai_prices",
-    "fetched_at": "2026-06-11T16:54:02",
+    "fetched_at": "2026-06-11T17:04:20",
     "raw_files": [
-      "data/raw/ai_prices/2026-06-11/models.json"
+      "data/raw/ai_prices/2026-06-11/models.json",
+      "data/raw/ai_prices/2026-06-11/eciwag.csv"
     ],
     "processed_files": [
-      "data/processed/ai_prices_snapshots.parquet"
+      "data/processed/ai_prices_snapshots.parquet",
+      "data/processed/ai_prices_wage_index.parquet"
     ],
     "rows": {
-      "snapshots": 337
+      "snapshots": 337,
+      "wage_index": 101
     },
     "notes": "1 snapshot date(s) accumulated"
   }
