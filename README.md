@@ -32,13 +32,28 @@ python -m des_sim.targets   # print calibration targets from the latest data
 des-sim-run                 # run the demand-elasticity sweep -> results/
 ```
 
-`src/des_sim/model/engine.py` is the minimal vertical slice: designers
-(junior/mid/senior), firms with task routing and demand response, per-category
-AI capability curves, a lagged talent pipeline, and hiring/layoff frictions.
-Stubbed for now: AI fluency, wage bargaining, skill atrophy, specialty.
-First result (June 2026): junior employment collapse (-53% to -69% over 10
-years) emerges at *every* demand elasticity; elasticity instead governs total
-employment (-56% at ε=0.3 to +11% at ε=2.0). See `results/`.
+```sh
+des-sim-backcast            # calibrate to BTOS, fit on 2023-26, project to 2035
+```
+
+`src/des_sim/model/engine.py` is the vertical slice: designers
+(junior/mid/senior), firms with task routing, demand response, and
+idiosyncratic demand churn, per-category AI capability curves,
+vacancy-gated promotions, market-tightness wage bargaining, and a talent
+pipeline that responds to prospects. Stubbed: AI fluency, skill atrophy,
+specialty. Every run is scored against a paired no-AI counterfactual
+(same seed, `ai_scale=0`) — an early version without this comparison
+produced a spurious "junior collapse at every elasticity" from a
+non-stationary baseline; the counterfactual is what caught it.
+
+Fitted result (June 2026, `des-sim-backcast`): with adoption calibrated to
+BTOS and (ε, capability timing) fitted on the 2023-26 design-vs-aggregate
+postings ratio, best fit is ε≈1.5. Projection: junior employment dips
+2027-2030 while production work automates, then demand expansion re-absorbs
+juniors; total employment +28% vs no-AI by 2035; senior wage premium rises.
+Caveats: the fit surface is flat (the data so far only weakly identifies ε),
+and the model *under*-predicts the observed design-postings decline to date.
+See `results/`.
 
 ## Sources
 

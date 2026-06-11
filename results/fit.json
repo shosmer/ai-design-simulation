@@ -1,0 +1,191 @@
+{
+  "adoption_loc_anchor_months": 3.169842587231877,
+  "adoption_scale_months": 14.828708601529113,
+  "best": {
+    "elasticity": 1.5,
+    "shift": 0.0,
+    "rmse": 0.08884338871572246
+  },
+  "grid": [
+    {
+      "elasticity": 0.5,
+      "shift": -6,
+      "rmse": 0.13123597814666854
+    },
+    {
+      "elasticity": 0.5,
+      "shift": 0,
+      "rmse": 0.13947790744934074
+    },
+    {
+      "elasticity": 0.5,
+      "shift": 6,
+      "rmse": 0.13979632120478488
+    },
+    {
+      "elasticity": 0.5,
+      "shift": 12,
+      "rmse": 0.14723815739935822
+    },
+    {
+      "elasticity": 0.5,
+      "shift": 18,
+      "rmse": 0.16407253153746798
+    },
+    {
+      "elasticity": 0.5,
+      "shift": 24,
+      "rmse": 0.1135590012503213
+    },
+    {
+      "elasticity": 0.75,
+      "shift": -6,
+      "rmse": 0.12603995244388183
+    },
+    {
+      "elasticity": 0.75,
+      "shift": 0,
+      "rmse": 0.11602399301931265
+    },
+    {
+      "elasticity": 0.75,
+      "shift": 6,
+      "rmse": 0.12805962996905454
+    },
+    {
+      "elasticity": 0.75,
+      "shift": 12,
+      "rmse": 0.12163009458422504
+    },
+    {
+      "elasticity": 0.75,
+      "shift": 18,
+      "rmse": 0.11810654572129745
+    },
+    {
+      "elasticity": 0.75,
+      "shift": 24,
+      "rmse": 0.1139111790925694
+    },
+    {
+      "elasticity": 1.0,
+      "shift": -6,
+      "rmse": 0.10787965801890381
+    },
+    {
+      "elasticity": 1.0,
+      "shift": 0,
+      "rmse": 0.14184025431125857
+    },
+    {
+      "elasticity": 1.0,
+      "shift": 6,
+      "rmse": 0.1187219093453188
+    },
+    {
+      "elasticity": 1.0,
+      "shift": 12,
+      "rmse": 0.13306103310475134
+    },
+    {
+      "elasticity": 1.0,
+      "shift": 18,
+      "rmse": 0.13971415250562758
+    },
+    {
+      "elasticity": 1.0,
+      "shift": 24,
+      "rmse": 0.13907206892719026
+    },
+    {
+      "elasticity": 1.25,
+      "shift": -6,
+      "rmse": 0.18515928130016482
+    },
+    {
+      "elasticity": 1.25,
+      "shift": 0,
+      "rmse": 0.10593710850788064
+    },
+    {
+      "elasticity": 1.25,
+      "shift": 6,
+      "rmse": 0.12602343831899365
+    },
+    {
+      "elasticity": 1.25,
+      "shift": 12,
+      "rmse": 0.1498039076870966
+    },
+    {
+      "elasticity": 1.25,
+      "shift": 18,
+      "rmse": 0.14675265296227724
+    },
+    {
+      "elasticity": 1.25,
+      "shift": 24,
+      "rmse": 0.14675265296227724
+    },
+    {
+      "elasticity": 1.5,
+      "shift": -6,
+      "rmse": 0.09653667295852547
+    },
+    {
+      "elasticity": 1.5,
+      "shift": 0,
+      "rmse": 0.08884338871572246
+    },
+    {
+      "elasticity": 1.5,
+      "shift": 6,
+      "rmse": 0.10831243626160851
+    },
+    {
+      "elasticity": 1.5,
+      "shift": 12,
+      "rmse": 0.12722172168505602
+    },
+    {
+      "elasticity": 1.5,
+      "shift": 18,
+      "rmse": 0.12708162289304964
+    },
+    {
+      "elasticity": 1.5,
+      "shift": 24,
+      "rmse": 0.11184375316373271
+    },
+    {
+      "elasticity": 2.0,
+      "shift": -6,
+      "rmse": 0.18339591896932247
+    },
+    {
+      "elasticity": 2.0,
+      "shift": 0,
+      "rmse": 0.17005331059685153
+    },
+    {
+      "elasticity": 2.0,
+      "shift": 6,
+      "rmse": 0.17553186206228982
+    },
+    {
+      "elasticity": 2.0,
+      "shift": 12,
+      "rmse": 0.166918068066902
+    },
+    {
+      "elasticity": 2.0,
+      "shift": 18,
+      "rmse": 0.14980691680190603
+    },
+    {
+      "elasticity": 2.0,
+      "shift": 24,
+      "rmse": 0.13631206980882424
+    }
+  ]
+}

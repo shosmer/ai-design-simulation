@@ -69,13 +69,15 @@ def main() -> int:
     out = plot(mean)
 
     print(f"\nWrote {RESULTS / 'sweep.csv'} and {out}\n")
-    print(f"{'ε':>5} {'emp Δ@end':>10} {'jr/sr @0':>9} {'jr/sr @end':>10} {'collapse?':>9}")
+    # Collapse is measured in absolute junior employment: at low elasticity
+    # seniors shrink too, so junior-per-senior ratios understate the damage.
+    print(f"{'ε':>5} {'junior Δ@end':>12} {'senior Δ':>9} {'total Δ':>8} {'collapse?':>9}")
     for eps, g in mean.groupby("elasticity"):
-        emp_delta = g["employed_total"].iloc[-1] / g["employed_total"].iloc[0] - 1
-        ratio_0 = g["junior_hires_per_senior"].iloc[11]  # after rolling window fills
-        ratio_end = g["junior_hires_per_senior"].iloc[-1]
-        collapsed = "yes" if ratio_end < 0.5 * ratio_0 else "no"
-        print(f"{eps:>5} {emp_delta:>+10.1%} {ratio_0:>9.3f} {ratio_end:>10.3f} {collapsed:>9}")
+        jr = g["employed_junior"].iloc[-1] / g["employed_junior"].iloc[0] - 1
+        sr = g["employed_senior"].iloc[-1] / g["employed_senior"].iloc[0] - 1
+        total = g["employed_total"].iloc[-1] / g["employed_total"].iloc[0] - 1
+        collapsed = "yes" if jr < -0.40 else "no"
+        print(f"{eps:>5} {jr:>+12.1%} {sr:>+9.1%} {total:>+8.1%} {collapsed:>9}")
     return 0
 
 
