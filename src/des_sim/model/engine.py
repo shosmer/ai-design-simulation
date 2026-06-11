@@ -30,7 +30,15 @@ INITIAL_MONTHLY_WAGE = [70_000 / 12, 110_000 / 12, 150_000 / 12]
 # Of human-remaining work not suitable for juniors, the mid/senior split:
 MID_SHARE_OF_NON_JUNIOR = 0.55
 
-AI_COST_FACTOR = 0.05  # AI cost per task-unit, vs initial blended human cost
+# AI cost per task-unit, as a share of the initial blended human cost. Not a
+# constant: token prices at fixed capability fell ~280x in 18 months (Stanford
+# AI Index 2025), so the token side decays with a half-life, while a floor
+# remains for the orchestration/review overhead that doesn't fall with tokens.
+# Anchored at mid-2026 (anchor time 0); extrapolating backwards, AI work was
+# proportionally more expensive.
+AI_COST_FACTOR = 0.05       # at anchor time 0
+AI_COST_HALF_LIFE = 24.0    # months
+AI_COST_FLOOR_FACTOR = 0.01
 
 LAYOFF_RATE_CAP = 0.08  # max share of a level's roster cut per month
 HIRE_RATE_CAP = 0.15    # max growth of a level's roster per month
@@ -185,7 +193,7 @@ class Simulation:
         self.level_mix = level_mix
         # AI cost is anchored to the *initial* human cost: model-server prices
         # don't rise just because designer wages do.
-        self.ai_cost = AI_COST_FACTOR * self._human_cost(level_mix)
+        self._human_cost_init = self._human_cost(level_mix)
 
         starts = self.rng.logistic(loc=adoption_loc, scale=adoption_scale, size=n_firms)
         sizes = self.rng.lognormal(mean=0, sigma=0.8, size=n_firms)
@@ -245,6 +253,13 @@ class Simulation:
     def _capability(self, cat: TaskCategory, t: float) -> float:
         return self.ai_scale * cat.capability(t + self.start_anchor - self.capability_shift)
 
+    def _ai_cost(self, t: float) -> float:
+        anchor = t + self.start_anchor  # cost decline follows the calendar
+        factor = AI_COST_FLOOR_FACTOR + (AI_COST_FACTOR - AI_COST_FLOOR_FACTOR) * (
+            0.5 ** (anchor / AI_COST_HALF_LIFE)
+        )
+        return min(factor, 1.0) * self._human_cost_init
+
     def _human_cost(self, mix: np.ndarray) -> float:
         return float((mix * self.wages).sum() / (mix * THROUGHPUT).sum())
 
@@ -256,10 +271,11 @@ class Simulation:
 
     def _unit_cost(self, adoption: float, t: float, mix: np.ndarray) -> float:
         human = self._human_cost(mix)
+        ai = self._ai_cost(t)
         cost = 0.0
         for c in self.categories:
             auto = self._capability(c, t) * adoption
-            cost += c.workload_share * (auto * self.ai_cost + (1 - auto) * human)
+            cost += c.workload_share * (auto * ai + (1 - auto) * human)
         return cost
 
     def _desired_headcount(self, firm: Firm, t: float) -> list[float]:

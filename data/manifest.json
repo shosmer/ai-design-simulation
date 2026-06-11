@@ -123,5 +123,19 @@
       "app_releases": 60
     },
     "notes": ""
+  },
+  "ai_prices": {
+    "source": "ai_prices",
+    "fetched_at": "2026-06-11T16:54:02",
+    "raw_files": [
+      "data/raw/ai_prices/2026-06-11/models.json"
+    ],
+    "processed_files": [
+      "data/processed/ai_prices_snapshots.parquet"
+    ],
+    "rows": {
+      "snapshots": 337
+    },
+    "notes": "1 snapshot date(s) accumulated"
   }
 }

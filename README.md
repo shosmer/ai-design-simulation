@@ -80,6 +80,7 @@ public claims should be ranges, not points. See `results/scenarios.png`.
 | `levels_fyi` | continuous | Wage-by-seniority calibration: stub until [API access](https://www.levels.fyi/api-access/) is granted (`LEVELS_FYI_API_KEY`) |
 | `onet_tasks` | quarterly | Capability anchoring: official O*NET task statements (task text → SOC) joined to AEI usage |
 | `design_demand` | annual / monthly | The elasticity question itself: Census SAS design-industry revenue (via FRED) + Google Play app releases (AppBrain). `targets.design_demand_evidence()` computes the output-shipped vs design-hiring ratio — rising = elastic-world evidence |
+| `ai_prices` | per pull | Per-token prices for ~300 models (OpenRouter, keyless); snapshots accumulate into a time series that grounds the engine's AI-cost-decline assumption |
 
 Annual reports worth folding in by hand each cycle: Stanford HAI AI Index
 (April), UX Tools Design Tools Survey, NN/g State of UX.

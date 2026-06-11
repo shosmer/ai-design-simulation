@@ -192,13 +192,21 @@ def build_payload() -> dict:
             f"different question: <i>when design gets cheaper, does the world "
             f"simply buy more of it?</i> (Economists call this demand "
             f"elasticity. Think of it as the world's appetite for design.)</p>"
+            f"<p>And design <i>is</i> getting cheaper — fast. The raw cost of "
+            f"AI output at a fixed quality level fell roughly <b>280x in 18 "
+            f"months</b>; designer salaries moved a few percent. One input to "
+            f"design work is in free fall while the other is static.</p>"
             f"<p>Now the lines tear apart. In the "
             f"<b style='color:#bf4633'>fixed-appetite world</b>, companies "
             f"pocket the savings and cut roles: about {jr_lo_pct}% fewer junior "
             f"designers than a world without AI. In the "
             f"<b style='color:#2e6f9e'>growing-appetite world</b>, cheaper "
             f"design means more things get designed — {jr_hi_pct}% <i>more</i> "
-            f"junior jobs. Same AI. Opposite outcomes.</p>")},
+            f"junior jobs. Same AI. Opposite outcomes.</p>"
+            f"<p class='note'><b>Careful with that 280x:</b> tokens are not "
+            f"finished design. The real cost of AI design work includes the "
+            f"human time to direct and review it, which falls far more slowly. "
+            f"Read it as direction and slope, not arithmetic.</p>")},
         {"view": 4, "html": (
             "<h3>Every future we found</h3>"
             "<p>The shaded band shows every single run — best case to worst, "
@@ -363,7 +371,10 @@ TEMPLATE = """<!DOCTYPE html>
   <p><b>Data.</b> Capability curves anchored to O*NET design-occupation task statements
   joined to the Anthropic Economic Index; firm adoption calibrated to the Census Bureau's
   Business Trends and Outlook Survey; labor-market context from BLS OEWS and Indeed
-  Hiring Lab. The AEI observes one AI assistant, so visual-production automation is
+  Hiring Lab. The 280x figure is the Stanford AI Index 2025's measured decline in
+  inference cost at fixed (GPT-3.5-level) capability, Nov 2022 &ndash; Oct 2024; in the
+  model, AI cost per task falls with a 24-month half-life toward an orchestration-cost
+  floor. The AEI observes one AI assistant, so visual-production automation is
   undercounted. A model is an argument made precise &mdash; not a forecast.</p>
 </footer>
 

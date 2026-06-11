@@ -1,4 +1,5 @@
 from .aei import AnthropicEconomicIndex
+from .ai_prices import AiPrices
 from .btos import BTOS
 from .design_demand import DesignDemand
 from .hiring_lab import HiringLab
@@ -18,5 +19,6 @@ SOURCES = {
         LevelsFyi,
         OnetTasks,
         DesignDemand,
+        AiPrices,
     )
 }
