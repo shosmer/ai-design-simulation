@@ -46,14 +46,26 @@ specialty. Every run is scored against a paired no-AI counterfactual
 produced a spurious "junior collapse at every elasticity" from a
 non-stationary baseline; the counterfactual is what caught it.
 
-Fitted result (June 2026, `des-sim-backcast`): with adoption calibrated to
-BTOS and (ε, capability timing) fitted on the 2023-26 design-vs-aggregate
-postings ratio, best fit is ε≈1.5. Projection: junior employment dips
-2027-2030 while production work automates, then demand expansion re-absorbs
-juniors; total employment +28% vs no-AI by 2035; senior wage premium rises.
-Caveats: the fit surface is flat (the data so far only weakly identifies ε),
-and the model *under*-predicts the observed design-postings decline to date.
-See `results/`.
+```sh
+des-sim-scenarios           # slow/base/fast x elasticity x seeds -> fan charts
+```
+
+Capability curves are anchored to data: O*NET design-occupation task
+statements joined to AEI task-level usage and automation modes set each
+category's *relative* AI maturity (design-to-code far ahead; production
+second), and scenarios vary the *absolute* level (slow/base/fast; base =
+AI performs ~7% of design work in adopted tech firms, mid-2026). Known
+bias: AEI observes Claude only, so visual-production automation in image
+tools is undercounted — production is a lower bound.
+
+Headline result (June 2026, `des-sim-scenarios`): **capability timing
+barely matters; demand elasticity decides everything.** Across slow/base/
+fast scenarios, 2035 outcomes move by a few points — across the credible
+elasticity range (1.0-2.0) the junior outcome spans 0.6x to 1.2x the no-AI
+counterfactual, total employment 0.8x to 1.8x, and the senior wage premium
+3.3x (inelastic) vs 1.7x (elastic). The 2023-26 backcast fit cannot pin ε
+down (flat fit surface, best-fit point unstable across curve revisions), so
+public claims should be ranges, not points. See `results/scenarios.png`.
 
 ## Sources
 

@@ -1,0 +1,318 @@
+{
+  "runs": 27,
+  "per_run": [
+    {
+      "scenario": "base",
+      "elasticity": 1.0,
+      "seed": 0,
+      "junior_trough_ratio": 0.5724027276373846,
+      "junior_trough_date": "2035-10-01",
+      "junior_end_ratio": 0.5797914995990376,
+      "total_end_ratio": 0.7981366459627329,
+      "premium_end": 3.2708027494190244,
+      "ai_task_share_end": 0.6498490194040345
+    },
+    {
+      "scenario": "base",
+      "elasticity": 1.0,
+      "seed": 1,
+      "junior_trough_ratio": 0.6030534351145038,
+      "junior_trough_date": "2035-12-01",
+      "junior_end_ratio": 0.6030534351145038,
+      "total_end_ratio": 0.8288165334373172,
+      "premium_end": 3.3233112665823032,
+      "ai_task_share_end": 0.6498490194040345
+    },
+    {
+      "scenario": "base",
+      "elasticity": 1.0,
+      "seed": 2,
+      "junior_trough_ratio": 0.5967810249894112,
+      "junior_trough_date": "2032-04-01",
+      "junior_end_ratio": 0.6135705419942077,
+      "total_end_ratio": 0.8480402010050251,
+      "premium_end": 3.420062839403815,
+      "ai_task_share_end": 0.6498490194040345
+    },
+    {
+      "scenario": "base",
+      "elasticity": 1.5,
+      "seed": 0,
+      "junior_trough_ratio": 0.900962309542903,
+      "junior_trough_date": "2035-12-01",
+      "junior_end_ratio": 0.900962309542903,
+      "total_end_ratio": 1.2393245341614907,
+      "premium_end": 2.632984002087224,
+      "ai_task_share_end": 0.6498490194040345
+    },
+    {
+      "scenario": "base",
+      "elasticity": 1.5,
+      "seed": 1,
+      "junior_trough_ratio": 0.8980704697986577,
+      "junior_trough_date": "2030-03-01",
+      "junior_end_ratio": 0.9039775010044194,
+      "total_end_ratio": 1.2493663482160264,
+      "premium_end": 2.65015364564616,
+      "ai_task_share_end": 0.6498490194040345
+    },
+    {
+      "scenario": "base",
+      "elasticity": 1.5,
+      "seed": 2,
+      "junior_trough_ratio": 0.926226012793177,
+      "junior_trough_date": "2031-05-01",
+      "junior_end_ratio": 0.9462143152668597,
+      "total_end_ratio": 1.3085427135678391,
+      "premium_end": 2.5317230030090894,
+      "ai_task_share_end": 0.6498490194040345
+    },
+    {
+      "scenario": "base",
+      "elasticity": 2.0,
+      "seed": 0,
+      "junior_trough_ratio": 0.8780172413793104,
+      "junior_trough_date": "2029-06-01",
+      "junior_end_ratio": 1.1519647153167603,
+      "total_end_ratio": 1.5830745341614907,
+      "premium_end": 1.4864743756770364,
+      "ai_task_share_end": 0.6498490194040345
+    },
+    {
+      "scenario": "base",
+      "elasticity": 2.0,
+      "seed": 1,
+      "junior_trough_ratio": 0.9292372881355933,
+      "junior_trough_date": "2029-03-01",
+      "junior_end_ratio": 1.178786661309763,
+      "total_end_ratio": 1.6237083252095925,
+      "premium_end": 1.6330056938439905,
+      "ai_task_share_end": 0.6498490194040345
+    },
+    {
+      "scenario": "base",
+      "elasticity": 2.0,
+      "seed": 2,
+      "junior_trough_ratio": 1.0078705728027983,
+      "junior_trough_date": "2029-04-01",
+      "junior_end_ratio": 1.206454282167977,
+      "total_end_ratio": 1.6669346733668342,
+      "premium_end": 1.9069266165725391,
+      "ai_task_share_end": 0.6498490194040345
+    },
+    {
+      "scenario": "fast",
+      "elasticity": 1.0,
+      "seed": 0,
+      "junior_trough_ratio": 0.5974338412189254,
+      "junior_trough_date": "2035-12-01",
+      "junior_end_ratio": 0.5974338412189254,
+      "total_end_ratio": 0.8212344720496895,
+      "premium_end": 3.3012624874124925,
+      "ai_task_share_end": 0.6499963179508635
+    },
+    {
+      "scenario": "fast",
+      "elasticity": 1.0,
+      "seed": 1,
+      "junior_trough_ratio": 0.5774075579032913,
+      "junior_trough_date": "2035-06-01",
+      "junior_end_ratio": 0.5781438328646042,
+      "total_end_ratio": 0.7937219730941704,
+      "premium_end": 3.533913495221704,
+      "ai_task_share_end": 0.6499963179508635
+    },
+    {
+      "scenario": "fast",
+      "elasticity": 1.0,
+      "seed": 2,
+      "junior_trough_ratio": 0.6104602510460251,
+      "junior_trough_date": "2033-11-01",
+      "junior_end_ratio": 0.6127430699213902,
+      "total_end_ratio": 0.843819095477387,
+      "premium_end": 3.4076418055601154,
+      "ai_task_share_end": 0.6499963179508635
+    },
+    {
+      "scenario": "fast",
+      "elasticity": 1.5,
+      "seed": 0,
+      "junior_trough_ratio": 0.9232006433453961,
+      "junior_trough_date": "2035-11-01",
+      "junior_end_ratio": 0.92542101042502,
+      "total_end_ratio": 1.2707686335403727,
+      "premium_end": 2.6133833291969975,
+      "ai_task_share_end": 0.6499963179508635
+    },
+    {
+      "scenario": "fast",
+      "elasticity": 1.5,
+      "seed": 1,
+      "junior_trough_ratio": 0.9379194630872483,
+      "junior_trough_date": "2030-03-01",
+      "junior_end_ratio": 0.9445560466050623,
+      "total_end_ratio": 1.3023981282901151,
+      "premium_end": 2.6613406200100984,
+      "ai_task_share_end": 0.6499963179508635
+    },
+    {
+      "scenario": "fast",
+      "elasticity": 1.5,
+      "seed": 2,
+      "junior_trough_ratio": 0.9317894736842105,
+      "junior_trough_date": "2032-01-01",
+      "junior_end_ratio": 0.9544890359950352,
+      "total_end_ratio": 1.3149748743718592,
+      "premium_end": 2.610795564826663,
+      "ai_task_share_end": 0.6499963179508635
+    },
+    {
+      "scenario": "fast",
+      "elasticity": 2.0,
+      "seed": 0,
+      "junior_trough_ratio": 0.9408695652173913,
+      "junior_trough_date": "2028-09-01",
+      "junior_end_ratio": 1.1150761828388132,
+      "total_end_ratio": 1.5341614906832297,
+      "premium_end": 1.8547140657767838,
+      "ai_task_share_end": 0.6499963179508635
+    },
+    {
+      "scenario": "fast",
+      "elasticity": 2.0,
+      "seed": 1,
+      "junior_trough_ratio": 0.8797975537747785,
+      "junior_trough_date": "2028-06-01",
+      "junior_end_ratio": 1.0482121333869023,
+      "total_end_ratio": 1.4474556443751219,
+      "premium_end": 1.8416249251321963,
+      "ai_task_share_end": 0.6499963179508635
+    },
+    {
+      "scenario": "fast",
+      "elasticity": 2.0,
+      "seed": 2,
+      "junior_trough_ratio": 0.8300567933595456,
+      "junior_trough_date": "2028-07-01",
+      "junior_end_ratio": 1.1187422424493174,
+      "total_end_ratio": 1.544924623115578,
+      "premium_end": 1.71414243074183,
+      "ai_task_share_end": 0.6499963179508635
+    },
+    {
+      "scenario": "slow",
+      "elasticity": 1.0,
+      "seed": 0,
+      "junior_trough_ratio": 0.58700882117081,
+      "junior_trough_date": "2035-12-01",
+      "junior_end_ratio": 0.58700882117081,
+      "total_end_ratio": 0.8074534161490683,
+      "premium_end": 3.303378705669006,
+      "ai_task_share_end": 0.6461140901151359
+    },
+    {
+      "scenario": "slow",
+      "elasticity": 1.0,
+      "seed": 1,
+      "junior_trough_ratio": 0.594047126911947,
+      "junior_trough_date": "2033-05-01",
+      "junior_end_ratio": 0.5966251506629169,
+      "total_end_ratio": 0.8274517449795282,
+      "premium_end": 3.339288261090795,
+      "ai_task_share_end": 0.6461140901151359
+    },
+    {
+      "scenario": "slow",
+      "elasticity": 1.0,
+      "seed": 2,
+      "junior_trough_ratio": 0.6076794657762938,
+      "junior_trough_date": "2035-03-01",
+      "junior_end_ratio": 0.6156392221762516,
+      "total_end_ratio": 0.854070351758794,
+      "premium_end": 3.421751452202412,
+      "ai_task_share_end": 0.6461140901151359
+    },
+    {
+      "scenario": "slow",
+      "elasticity": 1.5,
+      "seed": 0,
+      "junior_trough_ratio": 0.9177852348993288,
+      "junior_trough_date": "2032-08-01",
+      "junior_end_ratio": 0.9466720128307939,
+      "total_end_ratio": 1.3072593167701863,
+      "premium_end": 2.478747742963965,
+      "ai_task_share_end": 0.6461140901151359
+    },
+    {
+      "scenario": "slow",
+      "elasticity": 1.5,
+      "seed": 1,
+      "junior_trough_ratio": 0.9024793388429752,
+      "junior_trough_date": "2033-02-01",
+      "junior_end_ratio": 0.924467657693853,
+      "total_end_ratio": 1.2745174497952818,
+      "premium_end": 2.5585488519593866,
+      "ai_task_share_end": 0.6461140901151359
+    },
+    {
+      "scenario": "slow",
+      "elasticity": 1.5,
+      "seed": 2,
+      "junior_trough_ratio": 0.9073684210526316,
+      "junior_trough_date": "2032-01-01",
+      "junior_end_ratio": 0.9362846503930492,
+      "total_end_ratio": 1.295678391959799,
+      "premium_end": 2.5974052712372173,
+      "ai_task_share_end": 0.6461140901151359
+    },
+    {
+      "scenario": "slow",
+      "elasticity": 2.0,
+      "seed": 0,
+      "junior_trough_ratio": 0.9995698924731182,
+      "junior_trough_date": "2026-09-01",
+      "junior_end_ratio": 1.2257417802726545,
+      "total_end_ratio": 1.68652950310559,
+      "premium_end": 1.810705630199555,
+      "ai_task_share_end": 0.6461140901151359
+    },
+    {
+      "scenario": "slow",
+      "elasticity": 2.0,
+      "seed": 1,
+      "junior_trough_ratio": 1.0113732097725359,
+      "junior_trough_date": "2027-10-01",
+      "junior_end_ratio": 1.2732020891924467,
+      "total_end_ratio": 1.7582374731916552,
+      "premium_end": 1.8933951331842838,
+      "ai_task_share_end": 0.6461140901151359
+    },
+    {
+      "scenario": "slow",
+      "elasticity": 2.0,
+      "seed": 2,
+      "junior_trough_ratio": 1.0173951828724352,
+      "junior_trough_date": "2026-08-01",
+      "junior_end_ratio": 1.2871328092676873,
+      "total_end_ratio": 1.773467336683417,
+      "premium_end": 1.7599592797647587,
+      "ai_task_share_end": 0.6461140901151359
+    }
+  ],
+  "robust": {
+    "junior_dip_in_all_runs": false,
+    "junior_trough_ratio_range": [
+      0.5724027276373846,
+      1.0173951828724352
+    ],
+    "junior_end_ratio_range": [
+      0.5781438328646042,
+      1.2871328092676873
+    ],
+    "total_end_ratio_range": [
+      0.7937219730941704,
+      1.773467336683417
+    ],
+    "premium_rises_in_all_runs": false
+  }
+}

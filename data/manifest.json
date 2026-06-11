@@ -90,5 +90,19 @@
     "processed_files": [],
     "rows": {},
     "notes": "LEVELS_FYI_API_KEY not set. Request access at https://www.levels.fyi/api-access/, then implement the Product Designer endpoints in this adapter."
+  },
+  "onet_tasks": {
+    "source": "onet_tasks",
+    "fetched_at": "2026-06-11T11:59:51",
+    "raw_files": [
+      "data/raw/onet_tasks/2026-06-11/task_statements.txt"
+    ],
+    "processed_files": [
+      "data/processed/onet_tasks_statements.parquet"
+    ],
+    "rows": {
+      "statements": 18796
+    },
+    "notes": "O*NET db_30_1"
   }
 }

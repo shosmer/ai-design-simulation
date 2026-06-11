@@ -114,6 +114,92 @@ def aei_collaboration_split() -> pd.DataFrame:
     return out
 
 
+# Design occupations for the capability anchoring (O*NET task join).
+DESIGN_OCCUPATION_SOCS = ["15-1255", "27-1024", "27-1021", "27-1011", "27-1014"]
+
+# Ordered rules mapping O*NET design-task text to the model's task categories
+# (first match wins). Tuned against the actual 119 design-occupation task
+# statements; see aei_category_profile() output for the resulting assignment.
+CATEGORY_RULES = [
+    ("strategy_judgment", "confer|consult|client|stakeholder|strateg|budget|coordinate|direct others|negotiate|market|present.*to"),
+    ("research_synthesis", "user needs|usability|research|analyz|data|test|feedback|evaluat"),
+    ("prototyping_design_to_code", "code|script|program|application|implement|prototype|e-commerce|database|technical"),
+    ("wireframing_ideation", "site map|template|wireframe|mockup|sketch|concept|menu design|plan|layout"),
+    ("production", "image|illustrat|artwork|graphic|animation|render|photograph|brochure|multimedia|web site|web page|logo|typograph|drawing|model|storyboard"),
+]
+AUTOMATION_MODES = {"directive", "feedback loop"}
+
+
+def aei_category_profile() -> pd.DataFrame:
+    """Per task-category AI maturity profile for design occupations.
+
+    Joins official O*NET task statements for design SOCs to AEI task-level
+    usage and collaboration modes, then aggregates to the model's categories:
+    - usage_pct: share of all Claude.ai conversations on these tasks
+    - automation_share: usage-weighted share in automation modes
+      (directive + feedback loop, of classified conversations)
+    - rel_maturity: usage intensity x automation share, max-normalized.
+      This is the data-grounded *relative* input to capability anchoring;
+      the absolute level is a separate, documented assumption.
+    """
+    onet = _read("onet_tasks_statements.parquet")
+    design = onet[onet["onet_soc_code"].str[:7].isin(DESIGN_OCCUPATION_SOCS)].copy()
+    design["key"] = design["task"].str.lower().str.strip()
+    design = design.drop_duplicates("key")
+
+    def categorize(text: str) -> str:
+        for cat, pattern in CATEGORY_RULES:
+            if pd.Series([text]).str.contains(pattern, case=False, regex=True).iloc[0]:
+                return cat
+        return "production"
+
+    design["category"] = design["key"].map(categorize)
+
+    aei = _aei()
+    g = aei[aei["geo_id"] == "GLOBAL"]
+    usage = g[(g["facet"] == "onet_task") & (g["variable"] == "onet_task_pct")].copy()
+    usage["key"] = usage["cluster_name"].astype(str).str.lower().str.strip()
+    merged = design.merge(usage[["key", "value"]], on="key", how="inner").rename(
+        columns={"value": "usage_pct"}
+    )
+
+    collab = g[
+        (g["facet"] == "onet_task::collaboration")
+        & (g["variable"] == "onet_task_collaboration_pct")
+    ].copy()
+    parts = collab["cluster_name"].astype(str).str.rsplit("::", n=1, expand=True)
+    collab["key"] = parts[0].str.lower().str.strip()
+    collab["mode"] = parts[1].str.lower().str.strip()
+    collab = collab[collab["mode"] != "not_classified"]
+    collab["is_auto"] = collab["mode"].isin(AUTOMATION_MODES)
+    auto = (
+        collab.groupby("key")
+        .apply(
+            lambda x: x.loc[x["is_auto"], "value"].sum() / max(x["value"].sum(), 1e-9),
+            include_groups=False,
+        )
+        .rename("automation_share")
+        .reset_index()
+    )
+    merged = merged.merge(auto, on="key", how="left")
+    merged["automation_share"] = merged["automation_share"].fillna(0.0)
+
+    prof = merged.groupby("category").apply(
+        lambda x: pd.Series(
+            {
+                "n_tasks": len(x),
+                "usage_pct": x["usage_pct"].sum(),
+                "automation_share": (x["usage_pct"] * x["automation_share"]).sum()
+                / max(x["usage_pct"].sum(), 1e-9),
+            }
+        ),
+        include_groups=False,
+    ).reset_index()
+    prof["maturity"] = prof["usage_pct"] * prof["automation_share"]
+    prof["rel_maturity"] = prof["maturity"] / prof["maturity"].max()
+    return prof.sort_values("rel_maturity", ascending=False)
+
+
 def oews_anchors() -> pd.DataFrame:
     """Employment counts and wage distribution anchors for design SOC codes."""
     df = _read("oews_design_occupations.parquet")

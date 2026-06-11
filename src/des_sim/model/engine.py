@@ -82,16 +82,55 @@ class TaskCategory:
         return self.ceiling / (1 + math.exp(-self.steepness * (anchor_t - self.midpoint)))
 
 
-# Stylized but anchored: AEI shows production-style tasks (directive
-# automation, 44% of interactions) ahead of judgment work, and the 2025-26
-# trade press consistently reports "intern work" automating first.
-DEFAULT_CATEGORIES = [
-    TaskCategory("production", 0.30, ceiling=0.85, midpoint=18, steepness=0.15, junior_share=0.60),
-    TaskCategory("wireframing_ideation", 0.15, ceiling=0.70, midpoint=28, steepness=0.12, junior_share=0.35),
-    TaskCategory("prototyping_design_to_code", 0.20, ceiling=0.75, midpoint=34, steepness=0.12, junior_share=0.30),
-    TaskCategory("research_synthesis", 0.15, ceiling=0.60, midpoint=44, steepness=0.10, junior_share=0.25),
-    TaskCategory("strategy_judgment", 0.20, ceiling=0.25, midpoint=60, steepness=0.08, junior_share=0.05),
-]
+# Structural assumptions per category: share of design workload, automation
+# ceiling, curve steepness, and the junior-suitable share of remaining work.
+# name: (workload_share, ceiling, steepness, junior_share)
+CATEGORY_STRUCTURE = {
+    "production": (0.30, 0.85, 0.15, 0.60),
+    "wireframing_ideation": (0.15, 0.70, 0.12, 0.35),
+    "prototyping_design_to_code": (0.20, 0.75, 0.12, 0.30),
+    "research_synthesis": (0.15, 0.60, 0.10, 0.25),
+    "strategy_judgment": (0.20, 0.25, 0.08, 0.05),
+}
+
+# Relative AI maturity by category, from targets.aei_category_profile():
+# O*NET design-occupation tasks joined to AEI usage and automation modes,
+# usage intensity normalized by workload share (release_2026_03_24 values —
+# scenarios.py recomputes from live data). Known bias: AEI observes Claude
+# only, so visual-production automation in image tools is undercounted;
+# treat production as a lower bound.
+AEI_REL_MATURITY = {
+    "prototyping_design_to_code": 1.0,
+    "production": 0.153,
+    "strategy_judgment": 0.088,
+    "wireframing_ideation": 0.059,
+    "research_synthesis": 0.032,
+}
+
+
+def build_categories(
+    rel_maturity: dict[str, float] | None = None,
+    anchor_max: float = 0.25,
+    steepness_scale: float = 1.0,
+) -> list[TaskCategory]:
+    """Build capability curves anchored to a present-day capability level.
+
+    anchor_max is the assumed share of the *most AI-mature* category's work
+    that AI performs in adopted firms at mid-2026 (anchor time 0); the other
+    categories scale by rel_maturity. Midpoints are solved so each curve
+    passes through its anchor.
+    """
+    rel = rel_maturity or AEI_REL_MATURITY
+    cats = []
+    for name, (share, ceiling, steepness, junior_share) in CATEGORY_STRUCTURE.items():
+        c0 = min(max(anchor_max * rel[name], 0.005), 0.95 * ceiling)
+        k = steepness * steepness_scale
+        midpoint = math.log(ceiling / c0 - 1) / k
+        cats.append(TaskCategory(name, share, ceiling, midpoint, k, junior_share))
+    return cats
+
+
+DEFAULT_CATEGORIES = build_categories()
 
 
 # eq=False: identity equality, so list.remove() pulls the exact agent rather
