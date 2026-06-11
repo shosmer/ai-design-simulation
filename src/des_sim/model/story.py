@@ -13,6 +13,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from .. import targets
+
 RESULTS = Path("results")
 OUT = Path("writeup/story/index.html")
 
@@ -113,6 +115,32 @@ def build_payload() -> dict:
              metric="Junior designers employed — the open question"),
     ]
 
+    # 8 — measured reality: the elasticity-evidence ratio, if data is pulled
+    evidence = None
+    try:
+        ev = targets.design_demand_evidence()
+        ev = ev[ev["month"].dt.year >= 2023]
+        latest = ev.iloc[-1]
+        year_ago = ev.iloc[-13] if len(ev) > 13 else ev.iloc[0]
+        delta = latest["elasticity_evidence_ratio"] - year_ago["elasticity_evidence_ratio"]
+        evidence = {
+            "x": [round(m.year + (m.month - 0.5) / 12, 4) for m in ev["month"]],
+            "values": [round(v, 4) for v in ev["elasticity_evidence_ratio"]],
+            "latest": round(float(latest["elasticity_evidence_ratio"]), 2),
+            "asof": str(latest["month"]),
+            "trend": "rising" if delta > 0.02 else ("falling" if delta < -0.02 else "flat"),
+        }
+        views.append(
+            dict(**y_ratio, ref=1.0, refLabel="2023 baseline",
+                 series=series_eps(jr_eps, hidden=True), band=None, ann=[],
+                 metric="Measured, not simulated: designed output shipped ÷ design hiring",
+                 extra={"x": evidence["x"], "values": evidence["values"],
+                        "color": "#211d18",
+                        "label": f"{evidence['latest']} and {evidence['trend']}"})
+        )
+    except FileNotFoundError:
+        pass
+
     jr_lo, jr_hi = jr_eps[1.0][end], jr_eps[2.0][end]
     tot_lo, tot_hi = tot_eps[1.0][end], tot_eps[2.0][end]
     pr_lo, pr_hi = prem_eps[2.0][end], prem_eps[1.0][end]
@@ -200,7 +228,7 @@ def build_payload() -> dict:
             f"whether cheaper design expands what gets designed.</p>")},
         {"view": 7, "html": (
             "<h3>So which world are we in?</h3>"
-            "<p>Honestly: the real-world data can't tell us yet. We tested the "
+            "<p>Honestly: the historical data can't settle it. We tested the "
             "model against three years of job postings and government surveys "
             "of AI adoption, and that history fits several of these futures "
             "about equally well. Anyone giving you one confident number about "
@@ -209,9 +237,28 @@ def build_payload() -> dict:
             "weather. Every team that treats AI as a reason to design "
             "<i>more</i> — more products, more experiments, more polish — "
             "rather than a reason to design with fewer people, is voting for "
-            "the blue world. This page rebuilds from fresh data as the picture "
-            "sharpens.</p>")},
+            "the blue world.</p>")},
     ]
+    if evidence:
+        lean = {
+            "rising": "The early evidence leans, gently, blue.",
+            "falling": "The early evidence leans, gently, red.",
+            "flat": "So far, it refuses to pick a side.",
+        }[evidence["trend"]]
+        steps.append({"view": 8, "html": (
+            f"<h3>But we can watch the answer arrive</h3>"
+            f"<p>There is one early signal, and this line is it — <b>measured, "
+            f"not simulated</b>. Count the designed products actually shipping "
+            f"(new app releases), divide by design hiring (job postings). If "
+            f"appetite grows as design gets cheaper, this ratio should rise: "
+            f"more designed things per designer hired. As of "
+            f"{evidence['asof']} it reads <b>{evidence['latest']}</b> and has "
+            f"been {evidence['trend']} for the past year. {lean}</p>"
+            f"<p class='note'><b>What this doesn't prove:</b> it's one app "
+            f"store, raw counts ignore quality and scope, and the 2024 dip is "
+            f"mostly Google tightening its quality rules — not demand. Read "
+            f"the direction, not the level. This page rebuilds from fresh "
+            f"data, so the answer sharpens right here.</p>")})
 
     return {"x": x, "xDomain": [X_START, X_END], "views": views, "steps": steps}
 
@@ -339,10 +386,11 @@ const Y = (v, d) => M.t + (1 - (v - d[0]) / (d[1] - d[0])) * (H - M.t - M.b);
 const lerp = (a, b, t) => a + (b - a) * t;
 const ease = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
 
-function linePath(vals, dom) {
+function linePath(vals, dom, xs) {
+  xs = xs || DATA.x;
   let p = '';
-  for (let i = 0; i < N; i++)
-    p += (i ? 'L' : 'M') + X(DATA.x[i]).toFixed(1) + ',' + Y(vals[i], dom).toFixed(1);
+  for (let i = 0; i < xs.length; i++)
+    p += (i ? 'L' : 'M') + X(xs[i]).toFixed(1) + ',' + Y(vals[i], dom).toFixed(1);
   return p;
 }
 function areaPath(lo, hi, dom) {
@@ -374,6 +422,8 @@ for (let s = 0; s < 3; s++) {
   seriesEls.push(el('path', {class: 'series'}));
   endEls.push(el('text', {class: 'endlabel'}));
 }
+const extraEl = el('path', {class: 'series', 'stroke-width': 2.8, opacity: 0});
+const extraLbl = el('text', {class: 'endlabel', opacity: 0});
 const gAnn = el('g');
 
 // state
@@ -430,6 +480,17 @@ function render(state, view) {
     bandEl.setAttribute('d', areaPath(state.band.lo, state.band.hi, state.dom));
     bandEl.style.opacity = 1;
   } else bandEl.style.opacity = 0;
+  if (view.extra) {
+    extraEl.setAttribute('d', linePath(view.extra.values, state.dom, view.extra.x));
+    extraEl.setAttribute('stroke', view.extra.color);
+    extraEl.style.opacity = 1;
+    const ex = view.extra.x, evals = view.extra.values;
+    extraLbl.setAttribute('x', X(ex[ex.length - 1]) + 8);
+    extraLbl.setAttribute('y', Y(evals[evals.length - 1], state.dom) + 4);
+    extraLbl.setAttribute('fill', view.extra.color);
+    extraLbl.textContent = view.extra.label;
+    extraLbl.style.opacity = 1;
+  } else { extraEl.style.opacity = 0; extraLbl.style.opacity = 0; }
   const ry = Y(state.ref, state.dom);
   refEl.setAttribute('y1', ry); refEl.setAttribute('y2', ry);
   refLbl.setAttribute('y', ry + 4);
