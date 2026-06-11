@@ -48,6 +48,7 @@ non-stationary baseline; the counterfactual is what caught it.
 
 ```sh
 des-sim-scenarios           # slow/base/fast x elasticity x seeds -> fan charts
+des-sim-story               # animated scrollytelling page -> writeup/story/
 ```
 
 Capability curves are anchored to data: O*NET design-occupation task
