@@ -1,5 +1,6 @@
 from .aei import AnthropicEconomicIndex
 from .btos import BTOS
+from .design_demand import DesignDemand
 from .hiring_lab import HiringLab
 from .layoffs import LayoffsFyi
 from .levels import LevelsFyi
@@ -8,5 +9,14 @@ from .onet import OnetTasks
 
 SOURCES = {
     cls.name: cls
-    for cls in (HiringLab, BTOS, OEWS, AnthropicEconomicIndex, LayoffsFyi, LevelsFyi, OnetTasks)
+    for cls in (
+        HiringLab,
+        BTOS,
+        OEWS,
+        AnthropicEconomicIndex,
+        LayoffsFyi,
+        LevelsFyi,
+        OnetTasks,
+        DesignDemand,
+    )
 }

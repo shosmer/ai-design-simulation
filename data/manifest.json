@@ -104,5 +104,24 @@
       "statements": 18796
     },
     "notes": "O*NET db_30_1"
+  },
+  "design_demand": {
+    "source": "design_demand",
+    "fetched_at": "2026-06-11T15:53:03",
+    "raw_files": [
+      "data/raw/design_demand/2026-06-11/REVEF54143ALLEST.csv",
+      "data/raw/design_demand/2026-06-11/REVEF54141ALLEST.csv",
+      "data/raw/design_demand/2026-06-11/REVEF5415ALLEST.csv",
+      "data/raw/design_demand/2026-06-11/appbrain.html"
+    ],
+    "processed_files": [
+      "data/processed/design_demand_revenue.parquet",
+      "data/processed/design_demand_app_releases.parquet"
+    ],
+    "rows": {
+      "revenue": 75,
+      "app_releases": 60
+    },
+    "notes": ""
   }
 }

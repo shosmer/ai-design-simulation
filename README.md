@@ -78,6 +78,8 @@ public claims should be ranges, not points. See `results/scenarios.png`.
 | `aei` | ~quarterly | Task routing + automatability: Anthropic Economic Index task-level usage, automation vs augmentation ([HuggingFace](https://huggingface.co/datasets/Anthropic/EconomicIndex), CC-BY) |
 | `layoffs_fyi` | manual export | Discrete shock events: drop the layoffs.fyi Airtable CSV at `data/manual/layoffs_fyi.csv` |
 | `levels_fyi` | continuous | Wage-by-seniority calibration: stub until [API access](https://www.levels.fyi/api-access/) is granted (`LEVELS_FYI_API_KEY`) |
+| `onet_tasks` | quarterly | Capability anchoring: official O*NET task statements (task text → SOC) joined to AEI usage |
+| `design_demand` | annual / monthly | The elasticity question itself: Census SAS design-industry revenue (via FRED) + Google Play app releases (AppBrain). `targets.design_demand_evidence()` computes the output-shipped vs design-hiring ratio — rising = elastic-world evidence |
 
 Annual reports worth folding in by hand each cycle: Stanford HAI AI Index
 (April), UX Tools Design Tools Survey, NN/g State of UX.

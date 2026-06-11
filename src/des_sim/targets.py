@@ -200,6 +200,51 @@ def aei_category_profile() -> pd.DataFrame:
     return prof.sort_values("rel_maturity", ascending=False)
 
 
+def design_demand_evidence() -> pd.DataFrame:
+    """The elasticity-evidence ratio: designed output shipped vs design labor demanded.
+
+    Monthly, both indexed to their 2023 average. The ratio rising means the
+    world is shipping more designed product per unit of design hiring — the
+    signature of the elastic ("appetite grows") world. Flat or falling is
+    evidence for the inelastic world. Output proxy is Google Play app
+    releases (12-month rolling mean); labor proxy is the mean Indeed postings
+    index for design-adjacent sectors.
+
+    Caveat: the output proxy absorbs platform-policy shocks that have nothing
+    to do with demand — Google's 2024 quality crackdown roughly halved monthly
+    releases. Read the trend, not the level, and prefer year-over-year moves.
+    """
+    apps = _read("design_demand_app_releases.parquet")
+    apps["date"] = pd.to_datetime(apps["date"])
+    apps = apps.sort_values("date")
+    apps["output"] = apps["new_releases"].rolling(12, min_periods=6).mean()
+    apps["month"] = apps["date"].dt.to_period("M")
+
+    postings = design_postings_index()
+    postings["month"] = postings["date"].dt.to_period("M")
+    labor = postings.groupby("month", as_index=False)["postings_index"].mean().rename(
+        columns={"postings_index": "labor"}
+    )
+
+    merged = apps[["month", "output"]].merge(labor, on="month").dropna()
+    base = merged[merged["month"].dt.year == 2023]
+    merged["output_idx"] = merged["output"] / base["output"].mean()
+    merged["labor_idx"] = merged["labor"] / base["labor"].mean()
+    merged["elasticity_evidence_ratio"] = merged["output_idx"] / merged["labor_idx"]
+    return merged
+
+
+def design_revenue() -> pd.DataFrame:
+    """Census SAS revenue (via FRED) for design service industries, nominal $M.
+
+    Annual with ~18-month lag; employer firms only; no design-services PPI
+    exists, so price vs quantity cannot be separated — use as a bound.
+    """
+    df = _read("design_demand_revenue.parquet")
+    df["date"] = pd.to_datetime(df["date"])
+    return df
+
+
 def oews_anchors() -> pd.DataFrame:
     """Employment counts and wage distribution anchors for design SOC codes."""
     df = _read("oews_design_occupations.parquet")
@@ -231,6 +276,19 @@ def summary() -> str:
     lines.append(f"AEI interaction modes: automation {g.get('automation', 0):.0f}%, augmentation {g.get('augmentation', 0):.0f}%")
     for _, r in oews_anchors().iterrows():
         lines.append(f"OEWS {r['OCC_CODE']} {r['OCC_TITLE']}: {r['TOT_EMP']:,.0f} employed, median ${r['A_MEDIAN']:,.0f}")
+    try:
+        ev = design_demand_evidence()
+        latest = ev.iloc[-1]
+        year_ago = ev.iloc[-13] if len(ev) > 13 else ev.iloc[0]
+        trend = "rising (elastic-world evidence)" if latest["elasticity_evidence_ratio"] > year_ago["elasticity_evidence_ratio"] * 1.02 else (
+            "falling (inelastic-world evidence)" if latest["elasticity_evidence_ratio"] < year_ago["elasticity_evidence_ratio"] * 0.98 else "flat (inconclusive)"
+        )
+        lines.append(
+            f"Elasticity evidence (output shipped / design hiring, 2023=1.0): "
+            f"{latest['elasticity_evidence_ratio']:.2f} as of {latest['month']}, {trend}"
+        )
+    except FileNotFoundError:
+        lines.append("Elasticity evidence: run `des-sim-ingest pull design_demand` first")
     return "\n".join(lines)
 
 
