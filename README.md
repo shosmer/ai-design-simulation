@@ -51,7 +51,14 @@ non-stationary baseline; the counterfactual is what caught it.
 ```sh
 des-sim-scenarios           # slow/base/fast x elasticity x seeds -> fan charts
 des-sim-story               # animated scrollytelling page -> writeup/story/
+des-sim-site                # full multi-page site (story + 6 explorations) -> docs/
 ```
+
+Live at [shosmer.github.io/ai-design-simulation](https://shosmer.github.io/ai-design-simulation/):
+the story plus an elasticity slider, agent-level dots, task-flow sankey,
+one-future-at-a-time uncertainty plots, per-category capability curves, and a
+live measured-signals panel. Delete `results/explore_grid.csv` to re-run the
+slider grid after engine changes.
 
 Capability curves are anchored to data: O*NET design-occupation task
 statements joined to AEI task-level usage and automation modes set each
