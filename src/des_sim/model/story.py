@@ -78,41 +78,41 @@ def build_payload() -> dict:
         dict(**y_ratio, ref=1.0, refLabel="no-AI counterfactual",
              series=[{"name": n, "color": COLOR_SCENARIO[n], "values": flat, "hidden": True}
                      for n in ("slow", "base", "fast")],
-             band=None, ann=[], metric="Junior designers employed, vs a world without AI"),
+             band=None, ann=[], metric="Junior designers employed, vs a world without AI", fam="jr"),
         # 1 — by capability scenario
         dict(**y_ratio, ref=1.0, refLabel="no-AI counterfactual",
              series=series_scn(), band=None, ann=[],
-             metric="Junior designers employed, vs a world without AI"),
+             metric="Junior designers employed, vs a world without AI", fam="jr"),
         # 2 — same, annotated endpoints
         dict(**y_ratio, ref=1.0, refLabel="no-AI counterfactual",
              series=series_scn(), band=None,
              ann=ann_ends(jr_scn, ("slow", "base", "fast")),
-             metric="Junior designers employed, vs a world without AI"),
+             metric="Junior designers employed, vs a world without AI", fam="jr"),
         # 3 — regrouped by elasticity
         dict(**y_ratio, ref=1.0, refLabel="no-AI counterfactual",
              series=series_eps(jr_eps), band=None,
              ann=ann_ends(jr_eps, (1.0, 1.5, 2.0)),
-             metric="Junior designers employed, vs a world without AI"),
+             metric="Junior designers employed, vs a world without AI", fam="jr"),
         # 4 — with min-max band
         dict(**y_ratio, ref=1.0, refLabel="no-AI counterfactual",
              series=series_eps(jr_eps), band=jr_band,
              ann=ann_ends(jr_eps, (1.0, 1.5, 2.0)),
-             metric="Junior designers employed — band = every run"),
+             metric="Junior designers employed — band = every run", fam="jr"),
         # 5 — senior premium (relative to the no-AI world's premium)
         dict(**y_ratio, ref=1.0, refLabel="same gap as a no-AI world",
              series=series_eps(prem_eps), band=prem_band,
              ann=ann_ends(prem_eps, (1.0, 1.5, 2.0)),
-             metric="Senior-to-junior pay gap, vs a world without AI"),
+             metric="Senior-to-junior pay gap, vs a world without AI", fam="prem"),
         # 6 — total employment
         dict(y=[0.65, 1.95], ticks=[0.8, 1.0, 1.2, 1.4, 1.6, 1.8], ref=1.0,
              refLabel="no-AI counterfactual",
              series=series_eps(tot_eps), band=tot_band,
              ann=ann_ends(tot_eps, (1.0, 1.5, 2.0)),
-             metric="All designers employed, vs a world without AI"),
+             metric="All designers employed, vs a world without AI", fam="tot"),
         # 7 — closing: band only
         dict(**y_ratio, ref=1.0, refLabel="no-AI counterfactual",
              series=series_eps(jr_eps, hidden=True), band=jr_band, ann=[],
-             metric="Junior designers employed — the open question"),
+             metric="Junior designers employed — the open question", fam="jr"),
     ]
 
     # Extensive-margin scene: firm count vs the no-AI world. Entry doesn't
@@ -134,6 +134,7 @@ def build_payload() -> dict:
         band=firms_band,
         ann=[],
         metric="Number of tech companies, vs a world without AI (band = every run)",
+        fam="firms",
     )
 
     # Layoffs scene (view 1): the audience's strongest prior, addressed
@@ -151,8 +152,9 @@ def build_payload() -> dict:
         ann=[{"xi": peak_i, "y": 80,
               "text": f"{lo_m.index[peak_i].strftime('%b %Y')} peak — ChatGPT was 8 weeks old"}],
         metric="Measured: tech layoffs per month, thousands (layoffs.fyi)",
-        extras=[{"x": lo_x, "values": lo_vals, "color": "#211d18",
+        extras=[{"x": lo_x, "values": lo_vals, "color": "#211d18", "bars": True,
                  "label": "layoffs (k/mo)"}],
+        fam="layoffs",
     ))
 
     # Insert the measured input-price scene before the elasticity regroup.
@@ -166,8 +168,11 @@ def build_payload() -> dict:
     ai_vals = [round(100 * math.exp(rate * m), 3) for m in range(ai_months)]
     ai_drop_pct = round(100 - ai_vals[-1], 1)
 
+    # Only the endpoints are measured; the path between them is the implied
+    # exponential — encoded as dots + a dashed fit so the chart says so itself.
     price_extras = [
-        {"x": ai_x, "values": ai_vals, "color": "#211d18",
+        {"x": ai_x, "values": ai_vals, "color": "#211d18", "dash": "6 4",
+         "markers": [[ai_x[0], ai_vals[0]], [ai_x[-1], ai_vals[-1]]],
          "label": f"AI output −{ai_drop_pct:.0f}%"}
     ]
     wage_pct_text = "a few percent"
@@ -187,8 +192,8 @@ def build_payload() -> dict:
         y=[0, 118], ticks=[0, 25, 50, 75, 100], fmt="plain",
         ref=100.0, refLabel="Jan 2023 = 100",
         series=series_eps(jr_eps, hidden=True), band=None, ann=[],
-        metric="Measured input prices: AI output (fixed quality) vs U.S. wages",
-        extras=price_extras,
+        metric="Input prices: AI output (dots = measured endpoints, dash = fitted path) vs U.S. wages (measured)",
+        extras=price_extras, fam="price",
     ))
     # After the layoffs + price inserts: 8 = total employment, 9 = open question slot.
     views.insert(9, firm_view)
@@ -198,14 +203,16 @@ def build_payload() -> dict:
     try:
         ev = targets.design_demand_evidence()
         ev = ev[ev["month"].dt.year >= 2023]
-        latest = ev.iloc[-1]
         year_ago = ev.iloc[-13] if len(ev) > 13 else ev.iloc[0]
-        delta = latest["elasticity_evidence_ratio"] - year_ago["elasticity_evidence_ratio"]
+        delta = ev.iloc[-1]["elasticity_evidence_ratio"] - year_ago["elasticity_evidence_ratio"]
+        # 6-month display smoothing, matched to the formation line below so
+        # the two series on this chart have comparable volatility.
+        smoothed = ev["elasticity_evidence_ratio"].rolling(6, center=True, min_periods=1).mean()
         evidence = {
             "x": [round(m.year + (m.month - 0.5) / 12, 4) for m in ev["month"]],
-            "values": [round(v, 4) for v in ev["elasticity_evidence_ratio"]],
-            "latest": round(float(latest["elasticity_evidence_ratio"]), 2),
-            "asof": str(latest["month"]),
+            "values": [round(v, 4) for v in smoothed],
+            "latest": round(float(smoothed.iloc[-1]), 2),
+            "asof": str(ev.iloc[-1]["month"]),
             "trend": "rising" if delta > 0.02 else ("falling" if delta < -0.02 else "flat"),
         }
         ev_extras = [{"x": evidence["x"], "values": evidence["values"],
@@ -218,17 +225,19 @@ def build_payload() -> dict:
                     & (bf["date"] >= "2023-01-01")].sort_values("date")
             smooth = bf["value"].rolling(6, min_periods=3).mean()
             base_bf = smooth[bf["date"].dt.year == 2023].mean()
+            keep = smooth.notna()
+            bf, smooth = bf[keep], smooth[keep]  # NaN head would break the SVG path
             bf_vals = [round(v / base_bf, 4) for v in smooth]
             evidence["formation_pct"] = round((bf_vals[-1] - 1) * 100)
             ev_extras.append(
                 {"x": [round(d.year + (d.month - 0.5) / 12, 4) for d in bf["date"]],
-                 "values": bf_vals, "color": "#b08a3e",
+                 "values": bf_vals, "color": "#7a5b8e",
                  "label": f"new tech companies +{evidence['formation_pct']}%"})
         views.append(
             dict(**y_ratio, ref=1.0, refLabel="2023 baseline",
                  series=series_eps(jr_eps, hidden=True), band=None, ann=[],
-                 metric="Measured, not simulated: two early signals (2023 = 1.0)",
-                 extras=ev_extras)
+                 metric="Measured, not simulated: two early signals (2023 = 1.0, both 6-mo smoothed)",
+                 extras=ev_extras, fam="evidence")
         )
     except FileNotFoundError:
         pass
@@ -384,7 +393,7 @@ def build_payload() -> dict:
         formation_bit = ""
         if "formation_pct" in evidence:
             formation_bit = (
-                f" And a second witness, in <b style='color:#b08a3e'>amber</b>: "
+                f" And a second witness, in <b style='color:#7a5b8e'>violet</b>: "
                 f"new tech companies — each one a future consumer of design — "
                 f"are forming {evidence['formation_pct']}% above their 2023 "
                 f"pace, a surge that began with the agentic-AI era."
@@ -473,6 +482,8 @@ TEMPLATE = """<!DOCTYPE html>
   .endlabel { font-size: 11px; font-weight: 600; transition: opacity .7s; }
   .ann { font-size: 12px; font-weight: 700; opacity: 0; transition: opacity .5s; }
   .ann.show { opacity: 1; }
+  #chart.switching .series, #chart.switching .bandpath, #chart.switching .endlabel {
+    transition: opacity .2s; opacity: 0 !important; }
   .metric { font-size: 12.5px; fill: var(--muted); letter-spacing: .04em; }
   @media (max-width: 880px) {
     .scrolly { grid-template-columns: 1fr; }
@@ -503,7 +514,12 @@ TEMPLATE = """<!DOCTYPE html>
   <p><b>Method.</b> 27 agent-based simulation runs (3 capability scenarios &times; demand
   elasticity 1.0&ndash;2.0 &times; 3 seeds), each differenced against a paired no-AI
   counterfactual with identical random events. Lines are medians; bands are min&ndash;max
-  across all runs; series smoothed with a 5-month centered window for display.</p>
+  across all runs; series smoothed with a 5-month centered window for display.
+  <b>Bands span the assumption grid we chose to run &mdash; they are not probability
+  intervals</b>, and a wider grid would draw wider bands. All spread shown is parameter
+  uncertainty within one model structure; a different model would draw different
+  terrain. (An earlier version of this model produced a spurious junior collapse from a
+  structural flaw that the counterfactual caught &mdash; structure matters.)</p>
   <p><b>Data.</b> Capability curves anchored to O*NET design-occupation task statements
   joined to the Anthropic Economic Index; firm adoption calibrated to the Census Bureau's
   Business Trends and Outlook Survey; labor-market context from BLS OEWS and Indeed
@@ -576,10 +592,11 @@ for (let s = 0; s < 2; s++) {
   extraEls.push(el('path', {class: 'series', 'stroke-width': 2.8, opacity: 0}));
   extraLbls.push(el('text', {class: 'endlabel', opacity: 0}));
 }
+const gMarkers = el('g');
 const gAnn = el('g');
 
 // state
-let cur = null, animId = null;
+let cur = null, animId = null, curFam = '', switchTimer = null;
 function snapshot(view) {
   return {
     dom: view.y.slice(),
@@ -633,10 +650,27 @@ function render(state, view) {
     bandEl.style.opacity = 1;
   } else bandEl.style.opacity = 0;
   const extras = view.extras || [];
+  gMarkers.innerHTML = '';
   for (let s = 0; s < 2; s++) {
     if (s < extras.length) {
       const ex = extras[s];
-      extraEls[s].setAttribute('d', linePath(ex.values, state.dom, ex.x));
+      if (ex.bars) {  // discrete monthly quantities: columns, not a line
+        let d = '';
+        const y0 = Y(0, state.dom);
+        for (let i = 0; i < ex.x.length; i++)
+          d += 'M' + X(ex.x[i]).toFixed(1) + ',' + y0.toFixed(1)
+             + 'L' + X(ex.x[i]).toFixed(1) + ',' + Y(ex.values[i], state.dom).toFixed(1);
+        extraEls[s].setAttribute('d', d);
+        extraEls[s].setAttribute('stroke-width', 3);
+      } else {
+        extraEls[s].setAttribute('d', linePath(ex.values, state.dom, ex.x));
+        extraEls[s].setAttribute('stroke-width', 2.8);
+      }
+      if (ex.dash) extraEls[s].setAttribute('stroke-dasharray', ex.dash);
+      else extraEls[s].removeAttribute('stroke-dasharray');
+      if (ex.markers)
+        for (const [mx, mv] of ex.markers)
+          el('circle', {cx: X(mx), cy: Y(mv, state.dom), r: 4.5, fill: ex.color}, gMarkers);
       extraEls[s].setAttribute('stroke', ex.color);
       extraEls[s].style.opacity = 1;
       extraLbls[s].setAttribute('x', X(ex.x[ex.x.length - 1]) + 8);
@@ -663,8 +697,27 @@ function setView(i) {
     drawTicks(view);
     render(to, view);
     drawAnn(view);
+    curFam = view.fam || '';
     return;
   }
+  // Tweening values between *different metrics* would animate a false
+  // continuity ("the line moved" when the quantity changed). Same-family
+  // transitions tween; metric changes crossfade and snap.
+  const fam = view.fam || '';
+  if (curFam && fam !== curFam) {
+    curFam = fam;
+    cur = to;
+    if (switchTimer) clearTimeout(switchTimer);
+    svg.classList.add('switching');
+    switchTimer = setTimeout(() => {
+      drawTicks(view);
+      render(to, view);
+      svg.classList.remove('switching');
+      setTimeout(() => drawAnn(view), 250);
+    }, 230);
+    return;
+  }
+  curFam = fam;
   const t0 = performance.now(), DUR = 950;
   // band: if appearing/disappearing, snap shape but fade via CSS
   const fromBand = from.band || to.band, toBand = to.band || from.band;

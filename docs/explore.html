@@ -58,7 +58,8 @@
 <div class="panel"><svg id="chart" viewBox="0 0 900 380" style="width:100%"></svg></div>
 <div id="readout" style="display:flex;gap:14px;flex-wrap:wrap"></div>
 <p class="note">Each position is the median of three full simulation runs at that
-elasticity (base capability scenario), measured against paired no-AI worlds.
+elasticity (base capability scenario), measured against paired no-AI worlds —
+readouts carry a &approx; because three seeds leave a few points of noise.
 The historical record (2023–26) cannot tell us where this slider truly sits —
 that's the model's central honesty. Drag it and notice which futures you can
 and can't reach: the speed of AI never appears on this page.</p></main>
@@ -94,7 +95,7 @@ function draw(i){
     labels[k].setAttribute('x',X(N-1)+8);labels[k].setAttribute('y',Y(vals[N-1],...DOM)+4);
     labels[k].textContent=name;
     const end=vals[N-1];
-    cards.push(`<div class="panel" style="flex:1;min-width:170px"><div style="font-family:-apple-system,sans-serif;font-size:.74rem;color:var(--muted)">${name}, 2035 vs no-AI</div><div style="font-size:1.7rem;color:${c}">${end>=1?'+':''}${Math.round((end-1)*100)}%</div></div>`);
+    cards.push(`<div class="panel" style="flex:1;min-width:170px"><div style="font-family:-apple-system,sans-serif;font-size:.74rem;color:var(--muted)">${name}, 2035 vs no-AI</div><div style="font-size:1.7rem;color:${c}">&approx;${end>=1?'+':''}${Math.round((end-1)*100)}%</div></div>`);
   }
   document.getElementById('readout').innerHTML=cards.join('');
 }

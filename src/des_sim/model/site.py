@@ -174,7 +174,8 @@ def page_explore() -> str:
 <div class="panel"><svg id="chart" viewBox="0 0 900 380" style="width:100%"></svg></div>
 <div id="readout" style="display:flex;gap:14px;flex-wrap:wrap"></div>
 <p class="note">Each position is the median of three full simulation runs at that
-elasticity (base capability scenario), measured against paired no-AI worlds.
+elasticity (base capability scenario), measured against paired no-AI worlds —
+readouts carry a &approx; because three seeds leave a few points of noise.
 The historical record (2023–26) cannot tell us where this slider truly sits —
 that's the model's central honesty. Drag it and notice which futures you can
 and can't reach: the speed of AI never appears on this page.</p>"""
@@ -210,7 +211,7 @@ function draw(i){
     labels[k].setAttribute('x',X(N-1)+8);labels[k].setAttribute('y',Y(vals[N-1],...DOM)+4);
     labels[k].textContent=name;
     const end=vals[N-1];
-    cards.push(`<div class="panel" style="flex:1;min-width:170px"><div style="font-family:-apple-system,sans-serif;font-size:.74rem;color:var(--muted)">${name}, 2035 vs no-AI</div><div style="font-size:1.7rem;color:${c}">${end>=1?'+':''}${Math.round((end-1)*100)}%</div></div>`);
+    cards.push(`<div class="panel" style="flex:1;min-width:170px"><div style="font-family:-apple-system,sans-serif;font-size:.74rem;color:var(--muted)">${name}, 2035 vs no-AI</div><div style="font-size:1.7rem;color:${c}">&approx;${end>=1?'+':''}${Math.round((end-1)*100)}%</div></div>`);
   }
   document.getElementById('readout').innerHTML=cards.join('');
 }
@@ -225,19 +226,29 @@ draw(4);"""
 # ------------------------------------------------------------------- dots --
 
 def dots_data() -> dict:
+    """Sample the SAME individuals in both worlds.
+
+    With the same seed, the initial cohort is identical across worlds (the
+    runs only diverge once AI economics start to differ), so sampling fixed
+    indices from the month-0 population shows the same simulated people
+    living through both futures. Later entrants differ by world and are
+    deliberately excluded — including them under a "same people" caption
+    would be false.
+    """
     loc, scale, _ = calibrate_adoption()
-    worlds = {}
+    raw = {}
     for key, eps in (("red", 1.0), ("blue", 2.0)):
         sim = Simulation(elasticity=eps, months=MONTHS, seed=0,
                          start_anchor=START_ANCHOR, adoption_loc=loc,
                          adoption_scale=scale, track_agents=3)
         sim.run()
-        frames = sim.agent_log
-        total = len(frames[-1])
-        stride = max(1, total // 400)
-        sampled = ["".join(f[i] for i in range(0, len(f), stride)) for f in frames]
-        worlds[key] = sampled
-        print(f"  dots: {key} world, {total} agents, sampled {len(sampled[-1])}")
+        raw[key] = sim.agent_log
+    n0 = min(len(raw["red"][0]), len(raw["blue"][0]))
+    idx = [round(i * (n0 - 1) / 399) for i in range(400)]
+    worlds = {
+        key: ["".join(f[i] for i in idx) for f in frames] for key, frames in raw.items()
+    }
+    print(f"  dots: shared initial cohort {n0}, sampled {len(idx)} identical indices")
     return {"worlds": worlds, "step_months": 3}
 
 
@@ -261,13 +272,16 @@ def page_dots() -> str:
 </div>
 <div style="font-family:-apple-system,sans-serif;font-size:.78rem;color:var(--muted);margin-top:8px">
   &#9679; junior &nbsp;&#9679; mid &nbsp;&#9679; senior &nbsp;(darker = more senior)
-  &nbsp;&#9675; looking for work &nbsp;&middot; left the profession &nbsp;|
-  dots appearing later = new graduates entering</div>
-<p class="note">Each dot is one simulated designer — the same ~400 people (sampled
-from several thousand agents, same random seed) living through two different
-worlds. Watch the same careers diverge: in both worlds people get laid off and
-rehired (churn is normal), but where the dots end up — and how many fade out of
-the profession entirely — depends on the appetite assumption, not on the AI.</p>"""
+  &nbsp;&#9675; looking for work &nbsp;&middot; left the profession</div>
+<p class="note">Each dot is one simulated designer, and dot positions correspond:
+the dot at row 3, column 7 on the left is the <i>same individual</i> as row 3,
+column 7 on the right — 400 people sampled with identical indices from the
+month-0 population, which is identical across both worlds (same random seed;
+the runs only diverge as AI economics kick in). New graduates who enter later
+differ by world and are not shown — their story is the pipeline charts. In both
+worlds people get benched and rehired (churn is normal); what differs is where
+the same careers end up, and that depends on the appetite assumption, not the
+AI.</p>"""
     script = """
 const D=__DATA__;
 const COLORS={'1':'#8fb8d9','2':'#4a86b4','3':'#1d5380'};
@@ -344,7 +358,11 @@ design work (left) to who performs them (right), using the model's task
 arithmetic: AEI-anchored capability per category &times; the BTOS-calibrated
 adoption curve. Widths are shares of total design work — in elastic worlds the
 total itself grows, so a shrinking human <i>share</i> can still be growing
-human <i>work</i>. Design-to-code automates first; strategy barely moves.</p>"""
+human <i>work</i>. Design-to-code automates first; strategy barely moves.
+One reconciliation note: AI's sliver looks small in 2026 because this view
+spans the <i>whole economy</i>, most of which hasn't adopted yet &mdash; within
+adopted firms, AI already performs ~7% of design work (the story's anchor). As
+adoption spreads, the two numbers converge.</p>"""
     script = """
 const D=__DATA__;
 const W=900,H=480,LX=150,RX=W-170,NW=10;
@@ -422,10 +440,12 @@ def page_futures() -> str:
 <div class="panel"><svg id="chart" viewBox="0 0 900 420" style="width:100%"></svg></div>
 <p class="note">Junior design employment vs the no-AI world — shown one
 simulated future at a time instead of as a band, because bands get read as
-"the forecast plus noise" when the truth is closer to "here are 27 worlds we
-can't yet choose between." Earlier futures linger as ghosts. The red-tinted
-runs are inelastic worlds, blue-tinted elastic; notice the color, not the
-wiggle, is what separates them.</p>"""
+"the forecast plus noise" when the truth is closer to "here are distinct
+worlds we can't yet choose between." Earlier futures linger as ghosts. One
+honesty note: these 27 are <i>combinations from our assumption grid</i>, not
+random draws from a forecast — they are equally spaced, not equally likely.
+The red-tinted runs are inelastic worlds, blue-tinted elastic; notice the
+color, not the wiggle, is what separates them.</p>"""
     script = """
 const D=__DATA__;
 const W=900,H=420,M={l:50,t:20,r:30,b:34};
@@ -539,8 +559,12 @@ translucent sheet is the no-AI world (1.0x). <b>Drag to rotate</b>, and notice
 the shape of the claim this whole project makes: the terrain is a cliff along
 the <i>appetite</i> axis and nearly flat along the <i>AI capability</i> axis.
 Press play to watch the cliff grow out of flat ground — in 2026 the terrain
-barely exists. A model is a map of assumption space, not a forecast; this is
-the map.</p>"""
+barely exists. Two honesty notes: the vertices span the assumption grid we
+chose to run (they are not probabilities — a wider grid would draw wider
+terrain), and all of it is one model structure: a different model would draw
+different terrain. For reading precise values, the slider page is the better
+tool; this page communicates shape. A model is a map of assumption space, not
+a forecast; this is the map.</p>"""
     script = """
 const D=__DATA__;
 const svg=document.getElementById('terrain');
@@ -579,10 +603,16 @@ function render(){
   const ax=project((NE-1)/2,-0.7,1), ay=project(-1.1,(NA-1)/2,1);
   out+=`<text x="${ax[0]}" y="${ax[1]+18}" text-anchor="middle" class="chartlabel">appetite for design &rarr; (elasticity ${D.eps[0]} &ndash; ${D.eps[NE-1]})</text>`;
   out+=`<text x="${ay[0]}" y="${ay[1]}" text-anchor="middle" class="chartlabel">AI capability &rarr;</text>`;
-  // corner value tags
-  const tags=[[NE-1,NA-1],[0,NA-1]];
+  // corner value tags — all four, so magnitudes are readable despite 3D
+  const tags=[[0,0],[NE-1,0],[0,NA-1],[NE-1,NA-1]];
   for(const [e,a] of tags){const v=val(frame,a,e);const p=project(e,a,v);
     out+=`<text x="${p[0]+6}" y="${p[1]-8}" class="chartlabel" style="font-weight:600" fill="${v>=1?'#2e6f9e':'#bf4633'}">${v.toFixed(2)}x</text>`;}
+  // fixed color legend (does not rotate)
+  out+='<defs><linearGradient id="lg" x1="0" x2="1"><stop offset="0" stop-color="'+color(0.55)+'"/><stop offset="0.5" stop-color="'+color(1)+'"/><stop offset="1" stop-color="'+color(1.7)+'"/></linearGradient></defs>';
+  out+=`<rect x="${W-180}" y="14" width="120" height="10" fill="url(#lg)"/>`;
+  out+=`<text x="${W-180}" y="38" class="chartlabel">0.55x</text>`;
+  out+=`<text x="${W-124}" y="38" class="chartlabel">1.0x</text>`;
+  out+=`<text x="${W-72}" y="38" class="chartlabel">1.7x</text>`;
   svg.innerHTML=out;
   const m=D.months[frame], yr=2023+Math.floor(m/12), mo=m%12+1;
   document.getElementById('datelabel').textContent=yr+'-'+String(mo).padStart(2,'0');
@@ -679,11 +709,12 @@ def _sparkline(values: list[float], color: str = INK, w: int = 220, h: int = 44)
 def page_signals() -> str:
     cards = []
 
-    def card(title, spark_vals, color, reading, lean, lean_color, caveat):
+    def card(title, spark_vals, color, reading, lean, lean_color, caveat, span):
         cards.append(
             f'<div class="panel" style="width:330px">'
             f'<div style="font-family:-apple-system,sans-serif;font-size:.82rem"><b>{title}</b></div>'
             f"{_sparkline(spark_vals, color)}"
+            f'<div style="font-family:-apple-system,sans-serif;font-size:.66rem;color:{MUTED}">{span}</div>'
             f'<div style="font-size:1.25rem">{reading} '
             f'<span style="font-family:-apple-system,sans-serif;font-size:.72rem;background:{lean_color};color:#fff;'
             f'padding:2px 8px;border-radius:9px;vertical-align:middle">{lean}</span></div>'
@@ -694,11 +725,15 @@ def page_signals() -> str:
         ev = targets.design_demand_evidence()
         latest, year_ago = ev.iloc[-1], ev.iloc[-13 if len(ev) > 13 else 0]
         rising = latest["elasticity_evidence_ratio"] > year_ago["elasticity_evidence_ratio"] * 1.02
+        # 6-mo display smoothing, matched to the story's evidence scene so the
+        # headline reading agrees across pages
+        smoothed = ev["elasticity_evidence_ratio"].rolling(6, center=True, min_periods=1).mean()
         card("Designed output ÷ design hiring",
-             [round(v, 3) for v in ev["elasticity_evidence_ratio"]], INK,
-             f"{latest['elasticity_evidence_ratio']:.2f}",
+             [round(v, 3) for v in smoothed][-48:], INK,
+             f"{smoothed.iloc[-1]:.2f}",
              "leans blue" if rising else "leans red", BLUE if rising else RED,
-             f"2023 = 1.0; as of {latest['month']}. Rising = world ships more design per designer hired.")
+             f"2023 = 1.0, 6-mo smoothed; as of {latest['month']}. Rising = world ships more design per designer hired.",
+             "window: last 4 years")
     except FileNotFoundError:
         pass
     try:
@@ -708,19 +743,21 @@ def page_signals() -> str:
         recent = info[info["date"] >= info["date"].max() - pd.DateOffset(months=12)]["value"].mean()
         plateau = info[info["date"].dt.year.isin([2022, 2023, 2024])]["value"].mean()
         up = recent > plateau * 1.05
-        card("New tech companies / month (Census BFS)", vals[-60:], AMBER,
+        card("New tech companies / month (Census BFS)", vals[-48:], "#7a5b8e",
              f"{recent:,.0f}", "leans blue" if up else "neutral", BLUE if up else MUTED,
-             f"Trailing year vs 2022-24 plateau: {recent / plateau - 1:+.0%}. Filings, not employer firms.")
+             f"Trailing year vs 2022-24 plateau: {recent / plateau - 1:+.0%}. Filings, not employer firms.",
+             "window: last 4 years")
     except FileNotFoundError:
         pass
     try:
         lo = targets.tech_layoffs_monthly()
         vals = [round(v / 1000, 1) for v in lo["laid_off"].iloc[:-1]]
         last12 = sum(vals[-12:])
-        card("Tech layoffs, thousands / month (layoffs.fyi)", vals[-42:], RED,
+        card("Tech layoffs, thousands / month (layoffs.fyi)", vals[-48:], RED,
              f"{vals[-1]:.0f}k", "ambiguous", MUTED,
              f"~{last12:.0f}k in the trailing year. Peak was Jan 2023 — before design-capable AI. "
-             "Counts can't separate AI cuts from everything else.")
+             "Counts can't separate AI cuts from everything else.",
+             "window: last 4 years")
     except FileNotFoundError:
         pass
     try:
@@ -730,7 +767,8 @@ def page_signals() -> str:
         yoy = vals[-1] / vals[-13] - 1 if len(vals) > 13 else 0
         card("Design-adjacent job postings (Indeed)", vals[-48:], GREEN,
              f"{vals[-1]:.0f}", "leans red" if yoy < -0.03 else "neutral", RED if yoy < -0.03 else MUTED,
-             f"Index, Feb 2020 = 100; {yoy:+.0%} y/y. Demand for design *labor*, not design output.")
+             f"Index, Feb 2020 = 100; {yoy:+.0%} y/y. Demand for design *labor*, not design output.",
+             "window: last 4 years")
     except FileNotFoundError:
         pass
     try:
@@ -738,7 +776,8 @@ def page_signals() -> str:
         s = btos.groupby("date")["share"].mean()
         card("Firms using AI (Census BTOS)", [round(v, 3) for v in s], BLUE,
              f"{s.iloc[-1]:.0%}", "context", MUTED,
-             "National, all sectors; Information sector runs ~2x this. Feeds the adoption curve.")
+             "National, all sectors; Information sector runs ~2x this. Feeds the adoption curve.",
+             "window: since late 2025 (all available)")
     except (FileNotFoundError, ValueError):
         pass
     try:
@@ -749,7 +788,8 @@ def page_signals() -> str:
         card("AI price per million output tokens (median model)", [], MUTED,
              f"${med:,.2f}", "accumulating", MUTED,
              f"{n_dates} snapshot(s) so far — this series grows with every data refresh. "
-             "Token prices at fixed capability fell ~280x in 18 months (Stanford AI Index).")
+             "Token prices at fixed capability fell ~280x in 18 months (Stanford AI Index).",
+             "window: accumulating from June 2026")
     except FileNotFoundError:
         pass
 
@@ -758,7 +798,7 @@ def page_signals() -> str:
         f"Built {dt.date.today():%B %d, %Y} — every card recomputes from fresh data on rebuild.</div>"
         '<div style="display:flex;gap:14px;flex-wrap:wrap">' + "".join(cards) + "</div>"
         '<p class="note">The simulation says demand elasticity decides designers\' future; '
-        "these are the measured series that will reveal it. No single card proves anything — "
+        "these are the measured series that will reveal it. Lean chips use simple disclosed thresholds (ratio: ±2% over the trailing year; formation: +5% vs the 2022-24 plateau; postings: −3% y/y) — summaries, not statistical tests. No single card proves anything — "
         "the blue world announces itself as a pattern: output-per-hire rising, formation surging, "
         "postings stabilizing. The red world is the same cards with the signs flipped.</p>"
     )
