@@ -168,5 +168,19 @@
       "a11y_scores": 176
     },
     "notes": ""
+  },
+  "job_boards": {
+    "source": "job_boards",
+    "fetched_at": "2026-06-12T13:12:10",
+    "raw_files": [
+      "data/raw/job_boards/2026-06-12/boards.json"
+    ],
+    "processed_files": [
+      "data/processed/job_boards_snapshots.parquet"
+    ],
+    "rows": {
+      "snapshots": 34
+    },
+    "notes": "34/41 boards responded"
   }
 }

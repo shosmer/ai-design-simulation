@@ -3,6 +3,7 @@ from .ai_prices import AiPrices
 from .btos import BTOS
 from .design_demand import DesignDemand
 from .hiring_lab import HiringLab
+from .job_boards import JobBoards
 from .layoffs import LayoffsFyi
 from .levels import LevelsFyi
 from .oews import OEWS
@@ -22,5 +23,6 @@ SOURCES = {
         DesignDemand,
         AiPrices,
         WebQuality,
+        JobBoards,
     )
 }

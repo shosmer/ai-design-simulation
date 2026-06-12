@@ -83,6 +83,11 @@ def gather() -> dict:
     except FileNotFoundError:
         pass
 
+    try:
+        r["pm_design_ratio"] = targets.pm_design_ratio()["ratio"]
+    except FileNotFoundError:
+        pass
+
     oews = targets.oews_anchors().set_index("OCC_CODE")
     for soc, key in [("15-1255", "oews_designers"), ("11-3021", "oews_it_managers")]:
         if soc in oews.index:
@@ -145,6 +150,12 @@ def render(r: dict, prev: dict | None) -> str:
         "appetite for design tracks capital conditions; a tightening turn is "
         "red-world pressure regardless of AI news",
     ]
+    if "pm_design_ratio" in r:
+        lines.append(
+            f"- **PM : designer openings (sampled boards)**: {r['pm_design_ratio']}x"
+            f"{delta('pm_design_ratio')} — role-mix watch; falling ratio would signal "
+            "AI compressing coordination work (the role-convergence story reaching PM)"
+        )
     if "quality_gap" in r:
         lines.append(
             f"- **Web quality gap, p90−p10 (good-enough watch)**: {r['quality_gap']} pts, "

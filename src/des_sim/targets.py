@@ -258,6 +258,32 @@ def management_postings() -> pd.DataFrame:
     )
 
 
+def pm_design_ratio() -> dict:
+    """PM-to-designer openings ratio from the sampled job-board panel.
+
+    Built from primary sources (public Greenhouse/Lever/Ashby APIs) because
+    third-party trackers are bot-walled. Latest snapshot plus the prior one
+    for direction. Caveats: ~35-company panel skewed toward infra/dev-tools
+    (design-lean), so the level runs above market-wide trackers; the ratio's
+    *direction* over snapshots is the signal.
+    """
+    df = _read("job_boards_snapshots.parquet")
+    by_date = df.groupby("snapshot_date")[["n_design", "n_pm"]].sum()
+    latest = by_date.iloc[-1]
+    out = {
+        "date": by_date.index[-1],
+        "ratio": round(float(latest["n_pm"] / max(latest["n_design"], 1)), 2),
+        "n_design": int(latest["n_design"]),
+        "n_pm": int(latest["n_pm"]),
+        "n_companies": int(df[df["snapshot_date"] == by_date.index[-1]].shape[0]),
+        "n_snapshots": int(len(by_date)),
+    }
+    if len(by_date) > 1:
+        prev = by_date.iloc[-2]
+        out["prev_ratio"] = round(float(prev["n_pm"] / max(prev["n_design"], 1)), 2)
+    return out
+
+
 def ai_usage_concentration() -> dict:
     """Who is actually using AI: country concentration of Claude.ai usage.
 

@@ -801,6 +801,23 @@ def page_signals() -> str:
     except (FileNotFoundError, ValueError):
         pass
     try:
+        pdr = targets.pm_design_ratio()
+        trend = ""
+        if "prev_ratio" in pdr:
+            trend = " rising" if pdr["ratio"] > pdr["prev_ratio"] else (
+                " falling" if pdr["ratio"] < pdr["prev_ratio"] else " flat")
+        card("PM : designer openings (sampled tech boards)", [], MUTED,
+             f"{pdr['ratio']}x{trend}",
+             "role-mix watch", MUTED,
+             f"{pdr['n_pm']} PM vs {pdr['n_design']} design openings across {pdr['n_companies']} "
+             "company boards (public Greenhouse/Lever/Ashby APIs — primary sources, not a "
+             "tracker). Panel skews infra-heavy, so the level runs above market-wide estimates "
+             "(TrueUp via Lenny, Feb 2026: ~1.27x); watch the direction. If AI compresses "
+             "coordination work next, this ratio falls.",
+             f"snapshot {pdr['n_snapshots']} of an accumulating series")
+    except FileNotFoundError:
+        pass
+    try:
         conc = targets.ai_usage_concentration()
         card("Individual AI adoption (who's actually using it)", [], MUTED,
              f"US = {conc['us_share']:.0f}%",
