@@ -46,10 +46,10 @@ def build_payload() -> dict:
     jr_scn = by("scenario", "employed_junior_vs_cf")
     jr_eps = by("elasticity", "employed_junior_vs_cf")
     tot_eps = by("elasticity", "employed_total_vs_cf")
-    prem_eps = by("elasticity", "senior_premium")
+    prem_eps = by("elasticity", "senior_premium_vs_cf")
     jr_band = band("employed_junior_vs_cf")
     tot_band = band("employed_total_vs_cf")
-    prem_band = band("senior_premium")
+    prem_band = band("senior_premium_vs_cf")
 
     flat = [1.0] * len(x)
     end = len(x) - 1
@@ -98,12 +98,11 @@ def build_payload() -> dict:
              series=series_eps(jr_eps), band=jr_band,
              ann=ann_ends(jr_eps, (1.0, 1.5, 2.0)),
              metric="Junior designers employed — band = every run"),
-        # 5 — senior premium
-        dict(y=[1.3, 3.7], ticks=[1.5, 2.0, 2.5, 3.0, 3.5], ref=2.14,
-             refLabel="today ≈ 2.1x",
+        # 5 — senior premium (relative to the no-AI world's premium)
+        dict(**y_ratio, ref=1.0, refLabel="same gap as a no-AI world",
              series=series_eps(prem_eps), band=prem_band,
-             ann=ann_ends(prem_eps, (1.0, 1.5, 2.0), "{:.1f}x"),
-             metric="Senior-to-junior wage premium"),
+             ann=ann_ends(prem_eps, (1.0, 1.5, 2.0)),
+             metric="Senior-to-junior pay gap, vs a world without AI"),
         # 6 — total employment
         dict(y=[0.65, 1.95], ticks=[0.8, 1.0, 1.2, 1.4, 1.6, 1.8], ref=1.0,
              refLabel="no-AI counterfactual",
@@ -167,13 +166,27 @@ def build_payload() -> dict:
             "asof": str(latest["month"]),
             "trend": "rising" if delta > 0.02 else ("falling" if delta < -0.02 else "flat"),
         }
+        ev_extras = [{"x": evidence["x"], "values": evidence["values"],
+                      "color": "#211d18",
+                      "label": f"output/hiring {evidence['latest']}, {evidence['trend']}"}]
+        bf_path = Path("data/processed/design_demand_business_formation.parquet")
+        if bf_path.exists():
+            bf = pd.read_parquet(bf_path)
+            bf = bf[(bf["series"] == "information_sector_applications")
+                    & (bf["date"] >= "2023-01-01")].sort_values("date")
+            smooth = bf["value"].rolling(6, min_periods=3).mean()
+            base_bf = smooth[bf["date"].dt.year == 2023].mean()
+            bf_vals = [round(v / base_bf, 4) for v in smooth]
+            evidence["formation_pct"] = round((bf_vals[-1] - 1) * 100)
+            ev_extras.append(
+                {"x": [round(d.year + (d.month - 0.5) / 12, 4) for d in bf["date"]],
+                 "values": bf_vals, "color": "#b08a3e",
+                 "label": f"new tech companies +{evidence['formation_pct']}%"})
         views.append(
             dict(**y_ratio, ref=1.0, refLabel="2023 baseline",
                  series=series_eps(jr_eps, hidden=True), band=None, ann=[],
-                 metric="Measured, not simulated: designed output shipped ÷ design hiring",
-                 extras=[{"x": evidence["x"], "values": evidence["values"],
-                          "color": "#211d18",
-                          "label": f"{evidence['latest']} and {evidence['trend']}"}])
+                 metric="Measured, not simulated: two early signals (2023 = 1.0)",
+                 extras=ev_extras)
         )
     except FileNotFoundError:
         pass
@@ -261,16 +274,17 @@ def build_payload() -> dict:
             "the band as the honest answer.</p>")},
         {"view": 6, "html": (
             f"<h3>What happens to paychecks</h3>"
-            f"<p>Same worlds, now viewed through wages. Today a senior designer "
-            f"earns about 2.1x what a junior earns. In the "
-            f"<b style='color:#bf4633'>fixed-appetite world</b>, juniors get "
-            f"scarce, seniors get expensive, and the gap climbs past "
-            f"{pr_hi:.1f}x. In the <b style='color:#2e6f9e'>growing-appetite "
-            f"world</b>, hiring pulls people up the ladder and the gap narrows "
-            f"to about {pr_lo:.1f}x.</p>"
-            f"<p class='note'>This is why the debate feels so muddled: bad news "
-            f"for juniors is quietly <i>good</i> news for senior paychecks. "
-            f"Different people are living in different charts.</p>")},
+            f"<p>Same worlds, now viewed through the pay gap between senior and "
+            f"junior designers — again measured against the no-AI world, so "
+            f"only AI's effect shows. In the "
+            f"<b style='color:#bf4633'>fixed-appetite world</b>, AI leaves the "
+            f"gap roughly where it would have been anyway. In the "
+            f"<b style='color:#2e6f9e'>growing-appetite world</b>, hiring pulls "
+            f"juniors up the ladder and bids up their pay — the gap narrows by "
+            f"about {round((1 - pr_lo) * 100)}%.</p>"
+            f"<p class='note'>Worth sitting with: the world that's better for "
+            f"design jobs is also the more <i>equal</i> one. Demand, not the "
+            f"technology, decides both.</p>")},
         {"view": 7, "html": (
             f"<h3>The whole profession, one chart</h3>"
             f"<p>Counting every designer — junior through senior — the same AI "
@@ -296,19 +310,27 @@ def build_payload() -> dict:
             "falling": "The early evidence leans, gently, red.",
             "flat": "So far, it refuses to pick a side.",
         }[evidence["trend"]]
+        formation_bit = ""
+        if "formation_pct" in evidence:
+            formation_bit = (
+                f" And a second witness, in <b style='color:#b08a3e'>amber</b>: "
+                f"new tech companies — each one a future consumer of design — "
+                f"are forming {evidence['formation_pct']}% above their 2023 "
+                f"pace, a surge that began with the agentic-AI era."
+            )
         steps.append({"view": len(views) - 1, "html": (
             f"<h3>But we can watch the answer arrive</h3>"
-            f"<p>There is one early signal, and this line is it — <b>measured, "
-            f"not simulated</b>. Count the designed products actually shipping "
-            f"(new app releases), divide by design hiring (job postings). If "
-            f"appetite grows as design gets cheaper, this ratio should rise: "
-            f"more designed things per designer hired. As of "
+            f"<p>Two early signals, <b>measured, not simulated</b>. The "
+            f"<b>black line</b>: designed products actually shipping (new app "
+            f"releases) divided by design hiring (job postings). If appetite "
+            f"grows as design gets cheaper, it should rise — as of "
             f"{evidence['asof']} it reads <b>{evidence['latest']}</b> and has "
-            f"been {evidence['trend']} for the past year. {lean}</p>"
-            f"<p class='note'><b>What this doesn't prove:</b> it's one app "
-            f"store, raw counts ignore quality and scope, and the 2024 dip is "
-            f"mostly Google tightening its quality rules — not demand. Read "
-            f"the direction, not the level. This page rebuilds from fresh "
+            f"been {evidence['trend']} for a year.{formation_bit} {lean}</p>"
+            f"<p class='note'><b>What this doesn't prove:</b> one app store; "
+            f"raw counts ignore quality; the 2024 dip is mostly Google "
+            f"tightening quality rules; and company-formation filings aren't "
+            f"employer firms — some may be laid-off workers founding out of "
+            f"necessity. Direction, not proof. This page rebuilds from fresh "
             f"data, so the answer sharpens right here.</p>")})
 
     return {"x": x, "xDomain": [X_START, X_END], "views": views, "steps": steps}
@@ -414,7 +436,8 @@ TEMPLATE = """<!DOCTYPE html>
   <p><b>Data.</b> Capability curves anchored to O*NET design-occupation task statements
   joined to the Anthropic Economic Index; firm adoption calibrated to the Census Bureau's
   Business Trends and Outlook Survey; labor-market context from BLS OEWS and Indeed
-  Hiring Lab. The 280x figure is the Stanford AI Index 2025's measured decline in
+  Hiring Lab; company formation from Census Business Formation Statistics. The model
+  includes firm entry and exit — new firms arrive faster as design output gets cheaper. The 280x figure is the Stanford AI Index 2025's measured decline in
   inference cost at fixed (GPT-3.5-level) capability, Nov 2022 &ndash; Oct 2024; in the
   model, AI cost per task falls with a 24-month half-life toward an orchestration-cost
   floor. The AEI observes one AI assistant, so visual-production automation is

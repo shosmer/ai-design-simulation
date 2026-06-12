@@ -86,7 +86,14 @@ def run_all() -> pd.DataFrame:
                     categories=cats,
                 ).run()
                 base = no_ai[seed]
-                for col in ("employed_junior", "employed_mid", "employed_senior", "employed_total"):
+                for col in (
+                    "employed_junior",
+                    "employed_mid",
+                    "employed_senior",
+                    "employed_total",
+                    "senior_premium",
+                    "n_firms",
+                ):
                     df[f"{col}_vs_cf"] = df[col] / base[col]
                 df["scenario"] = name
                 df["seed"] = seed
@@ -104,7 +111,7 @@ def plot(df: pd.DataFrame) -> Path:
     panels = [
         ("employed_junior_vs_cf", "Junior employment vs no-AI counterfactual"),
         ("employed_total_vs_cf", "Total employment vs no-AI counterfactual"),
-        ("senior_premium", "Senior/junior wage premium"),
+        ("senior_premium_vs_cf", "Senior/junior wage premium vs no-AI counterfactual"),
     ]
     dates = df.drop_duplicates("month").sort_values("month")["date"]
     for ax, (col, title) in zip(axes, panels):
@@ -146,7 +153,8 @@ def robustness_summary(df: pd.DataFrame) -> dict:
                 "junior_trough_date": str(post.loc[trough_i, "date"].date()),
                 "junior_end_ratio": float(g["employed_junior_vs_cf"].iloc[-1]),
                 "total_end_ratio": float(g["employed_total_vs_cf"].iloc[-1]),
-                "premium_end": float(g["senior_premium"].iloc[-1]),
+                "premium_end": float(g["senior_premium_vs_cf"].iloc[-1]),
+                "firms_end_ratio": float(g["n_firms_vs_cf"].iloc[-1]),
                 "ai_task_share_end": float(g["ai_task_share"].iloc[-1]),
             }
         )
@@ -166,7 +174,11 @@ def robustness_summary(df: pd.DataFrame) -> dict:
             float(per["total_end_ratio"].min()),
             float(per["total_end_ratio"].max()),
         ],
-        "premium_rises_in_all_runs": bool((per["premium_end"] > 2.14).all()),
+        "premium_rises_in_all_runs": bool((per["premium_end"] > 1.0).all()),
+        "firms_end_ratio_range": [
+            float(per["firms_end_ratio"].min()),
+            float(per["firms_end_ratio"].max()),
+        ],
     }
     return summary
 
@@ -188,7 +200,8 @@ def main() -> int:
     print(f"  junior trough (vs no-AI): {r['junior_trough_ratio_range'][0]:.2f} to {r['junior_trough_ratio_range'][1]:.2f}")
     print(f"  junior at end of 2035 (vs no-AI): {r['junior_end_ratio_range'][0]:.2f} to {r['junior_end_ratio_range'][1]:.2f}")
     print(f"  total at end of 2035 (vs no-AI): {r['total_end_ratio_range'][0]:.2f} to {r['total_end_ratio_range'][1]:.2f}")
-    print(f"  senior premium rises in every run: {r['premium_rises_in_all_runs']}")
+    print(f"  senior premium rises vs no-AI in every run: {r['premium_rises_in_all_runs']}")
+    print(f"  firm count at end of 2035 (vs no-AI): {r['firms_end_ratio_range'][0]:.2f} to {r['firms_end_ratio_range'][1]:.2f}")
     print("\nMedian trough date by scenario:")
     for name, g in per.groupby("scenario"):
         dates = pd.to_datetime(g["junior_trough_date"])

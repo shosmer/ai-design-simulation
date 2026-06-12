@@ -26,6 +26,15 @@ FRED_SERIES = {
     "REVEF54141ALLEST": "interior_design_revenue",   # non-AI-exposed comparison
     "REVEF5415ALLEST": "computer_systems_design_revenue",
 }
+# Census Business Formation Statistics (monthly, SA): the extensive margin.
+# Information-sector applications ~= new tech companies; the high-propensity
+# total filters toward likely employer businesses. Applications are filings,
+# not operating firms — read direction, not level.
+BFS_SERIES = {
+    "BABANAICS51SAUS": "information_sector_applications",
+    "BABANAICS54SAUS": "professional_services_applications",
+    "BAHBATOTALSAUS": "high_propensity_applications_total",
+}
 FRED_URL = "https://fred.stlouisfed.org/graph/fredgraph.csv?id={sid}"
 APPBRAIN_URL = "https://www.appbrain.com/stats/number-of-android-apps"
 
@@ -37,7 +46,7 @@ class DesignDemand(Source):
 
     def fetch(self) -> list[Path]:
         files = []
-        for sid in FRED_SERIES:
+        for sid in list(FRED_SERIES) + list(BFS_SERIES):
             files.append(download(FRED_URL.format(sid=sid), self.raw_dir / f"{sid}.csv"))
         files.append(
             download(
@@ -51,18 +60,23 @@ class DesignDemand(Source):
     def transform(self, raw_files: list[Path]) -> dict[str, pd.DataFrame]:
         frames: dict[str, pd.DataFrame] = {}
 
-        revenue = []
+        revenue, formation = [], []
         for path in raw_files:
             sid = path.stem
-            if sid not in FRED_SERIES:
+            if sid not in FRED_SERIES and sid not in BFS_SERIES:
                 continue
             df = pd.read_csv(path)
             df.columns = ["date", "value"]
             df["date"] = pd.to_datetime(df["date"])
             df["value"] = pd.to_numeric(df["value"], errors="coerce")
-            df["series"] = FRED_SERIES[sid]
-            revenue.append(df.dropna())
+            if sid in FRED_SERIES:
+                df["series"] = FRED_SERIES[sid]
+                revenue.append(df.dropna())
+            else:
+                df["series"] = BFS_SERIES[sid]
+                formation.append(df.dropna())
         frames["revenue"] = pd.concat(revenue, ignore_index=True)
+        frames["business_formation"] = pd.concat(formation, ignore_index=True)
 
         html = (self.raw_dir / "appbrain.html").read_text(errors="ignore")
         frames["app_releases"] = self._parse_appbrain(html)

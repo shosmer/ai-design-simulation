@@ -234,6 +234,19 @@ def design_demand_evidence() -> pd.DataFrame:
     return merged
 
 
+def tech_firm_formation() -> pd.DataFrame:
+    """Census BFS: monthly business applications, the extensive-margin signal.
+
+    Information-sector applications ~= new tech companies; each user-facing
+    entrant is a future consumer of design output. Applications are filings,
+    not employer firms, and formation surges can include laid-off workers
+    founding out of necessity — direction over level.
+    """
+    df = _read("design_demand_business_formation.parquet")
+    df["date"] = pd.to_datetime(df["date"])
+    return df.sort_values("date")
+
+
 def design_revenue() -> pd.DataFrame:
     """Census SAS revenue (via FRED) for design service industries, nominal $M.
 
@@ -289,6 +302,17 @@ def summary() -> str:
         )
     except FileNotFoundError:
         lines.append("Elasticity evidence: run `des-sim-ingest pull design_demand` first")
+    try:
+        bf = tech_firm_formation()
+        info = bf[bf["series"] == "information_sector_applications"]
+        recent = info[info["date"] >= info["date"].max() - pd.DateOffset(months=12)]["value"].mean()
+        plateau = info[info["date"].dt.year.isin([2022, 2023, 2024])]["value"].mean()
+        lines.append(
+            f"Tech firm formation (BFS, Information sector): {recent:,.0f}/mo trailing year, "
+            f"{recent / plateau - 1:+.0%} vs the 2022-24 plateau"
+        )
+    except FileNotFoundError:
+        pass
     return "\n".join(lines)
 
 

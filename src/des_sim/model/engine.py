@@ -68,6 +68,16 @@ PIPELINE_MIN, PIPELINE_MAX = 0.2, 2.0  # entry response bounds vs baseline
 DEMAND_SHOCK_SIGMA = 0.035
 DEMAND_MEAN_REVERSION = 0.98
 
+# Firm entry and exit — the extensive margin. Exit is a constant hazard;
+# entry matches it in expectation while design output costs what it did at
+# the start, and scales up as output gets cheaper (new user-facing products
+# become viable: the "AI lets people start their own company" channel,
+# observable in Census BFS Information-sector applications). Entrants are
+# small, start with empty rosters, and are AI-adopters from birth.
+FIRM_EXIT_RATE = 0.004            # monthly hazard
+FIRM_ENTRY_COST_ELASTICITY = 1.0  # entry response to (p0 / p)
+ENTRANT_SIZE_FACTOR = 0.3         # vs the initial mean firm size
+
 
 @dataclass
 class TaskCategory:
@@ -230,6 +240,9 @@ class Simulation:
 
         # Start the unemployed pool at the natural rate so the first years
         # aren't dominated by a pool-filling transient.
+        self.n_firms_initial = n_firms
+        self.mean_base_demand = total_demand / n_firms
+
         self.unemployed: list[list[Designer]] = [[], [], []]
         for level in range(3):
             employed_lv = sum(len(f.roster[level]) for f in self.firms)
@@ -328,6 +341,27 @@ class Simulation:
             firm.demand_mult = math.exp(
                 DEMAND_MEAN_REVERSION * math.log(firm.demand_mult)
                 + self.rng.normal(0, DEMAND_SHOCK_SIGMA)
+            )
+
+        # Firm exit and entry (extensive margin; see constants above).
+        for firm in [f for f in self.firms if self.rng.random() < FIRM_EXIT_RATE]:
+            for level in range(3):
+                for d in firm.roster[level]:
+                    d.employer = None
+                    d.months_unemployed = 0
+                    self.unemployed[level].append(d)
+                    layoffs += 1
+                firm.roster[level] = []
+            self.firms.remove(firm)
+        adoption_now = float(
+            np.mean([f.adoption(t + self.start_anchor) for f in self.firms])
+        )
+        p_now = self._unit_cost(adoption_now, t, self._employment_mix())
+        entry_mult = (self.p0 / p_now) ** FIRM_ENTRY_COST_ELASTICITY
+        for _ in range(self.rng.poisson(FIRM_EXIT_RATE * self.n_firms_initial * entry_mult)):
+            size = ENTRANT_SIZE_FACTOR * self.mean_base_demand * float(self.rng.lognormal(0, 0.5))
+            self.firms.append(
+                Firm(base_demand=size, adoption_start=t + self.start_anchor, integration_months=6.0)
             )
 
         # Firms adjust rosters toward desired headcount, with frictions.
@@ -444,6 +478,7 @@ class Simulation:
                 "exits": exits,
                 "ai_task_share": ai_task_share,
                 "adoption": mean_adoption,
+                "n_firms": len(self.firms),
                 "unit_cost_rel": self._unit_cost(mean_adoption, t, self._employment_mix())
                 / self.p0,
                 "wage_junior": self.wages[JUNIOR],

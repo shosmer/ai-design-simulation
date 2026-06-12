@@ -38,10 +38,12 @@ des-sim-backcast            # calibrate to BTOS, fit on 2023-26, project to 2035
 
 `src/des_sim/model/engine.py` is the vertical slice: designers
 (junior/mid/senior), firms with task routing, demand response, and
-idiosyncratic demand churn, per-category AI capability curves,
-vacancy-gated promotions, market-tightness wage bargaining, and a talent
-pipeline that responds to prospects. Stubbed: AI fluency, skill atrophy,
-specialty. Every run is scored against a paired no-AI counterfactual
+idiosyncratic demand churn, firm entry/exit (entry accelerates as design
+output gets cheaper — the extensive margin visible in Census BFS), declining
+AI cost per task (24-month half-life toward an orchestration floor),
+per-category AI capability curves, vacancy-gated promotions,
+market-tightness wage bargaining, and a talent pipeline that responds to
+prospects. Stubbed: AI fluency, skill atrophy, specialty. Every run is scored against a paired no-AI counterfactual
 (same seed, `ai_scale=0`) — an early version without this comparison
 produced a spurious "junior collapse at every elasticity" from a
 non-stationary baseline; the counterfactual is what caught it.
@@ -62,11 +64,14 @@ tools is undercounted — production is a lower bound.
 Headline result (June 2026, `des-sim-scenarios`): **capability timing
 barely matters; demand elasticity decides everything.** Across slow/base/
 fast scenarios, 2035 outcomes move by a few points — across the credible
-elasticity range (1.0-2.0) the junior outcome spans 0.6x to 1.2x the no-AI
-counterfactual, total employment 0.8x to 1.8x, and the senior wage premium
-3.3x (inelastic) vs 1.7x (elastic). The 2023-26 backcast fit cannot pin ε
-down (flat fit surface, best-fit point unstable across curve revisions), so
-public claims should be ranges, not points. See `results/scenarios.png`.
+elasticity range (1.0-2.0) the junior outcome spans 0.65x to 1.70x the
+no-AI counterfactual and total employment 0.90x to 2.34x. With firm entry
+in the model, AI leaves the senior-junior pay gap roughly unchanged in the
+inelastic world and *narrows* it up to ~45% in the elastic one — the
+better-for-jobs world is also the more equal one. The 2023-26 backcast fit
+cannot pin ε down (flat fit surface, best-fit point unstable across curve
+revisions), so public claims should be ranges, not points. See
+`results/scenarios.png`.
 
 ## Sources
 
