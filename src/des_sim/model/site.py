@@ -45,6 +45,7 @@ NAV = [
     ("terrain.html", "The terrain of futures", "the cliff runs along one axis"),
     ("categories.html", "Five kinds of design work", "what automates first"),
     ("signals.html", "Which world are we in?", "live measured signals"),
+    ("data.html", "The data", "every source, and why"),
 ]
 
 INK, MUTED, PAPER, RULE = "#211d18", "#7a7065", "#faf7f0", "#c9c0b2"
@@ -882,6 +883,199 @@ def page_signals() -> str:
                  "The model can't tell you. These live signals eventually will.", body)
 
 
+# ------------------------------------------------------------------- data --
+
+# Why each source earned its place. Keys match the ingest SOURCES registry;
+# cadence/description come from the adapters, freshness from the manifest.
+SOURCE_RATIONALE = {
+    "hiring_lab": {
+        "group": "Labor market",
+        "why": "The only postings index that's free, machine-readable (plain CSVs on "
+               "GitHub, CC-BY), and updated weekly. Sector-level granularity lets us build "
+               "the design-vs-aggregate ratio that nets out the macro cycle — the "
+               "difference-in-differences trick the whole backcast rests on.",
+        "watch": "Indeed's taxonomy has no 'design' sector; we proxy with four "
+                 "design-adjacent sectors. Postings measure hiring intent, not hires.",
+        "feeds": "Backcast fit, design + management postings signals, check-in brief.",
+    },
+    "oews": {
+        "group": "Labor market",
+        "why": "The ground truth. BLS occupation-level employment counts and full wage "
+               "distributions are the only numbers here with survey-grade methodology — "
+               "every simulated headcount and wage is anchored to them.",
+        "watch": "Annual, ~12-month lag. SOC codes lag reality: 'web and digital interface "
+                 "designers' is the closest thing to product designers.",
+        "feeds": "Model scale and wage calibration; designer and IT-manager baselines.",
+    },
+    "layoffs_fyi": {
+        "group": "Labor market",
+        "why": "The de-facto public record of tech layoffs, event-level since 2020. We "
+               "scrape its Airtable shared view directly so the series updates without "
+               "manual exports — and it powers the story's most disarming fact: the "
+               "all-time peak predates design-capable AI.",
+        "watch": "~1/3 of events lack headcounts (totals undercount); attribution from "
+                 "counts alone is impossible; the scrape is fragile by nature.",
+        "feeds": "Layoffs story scene, signals card, check-in brief.",
+    },
+    "job_boards": {
+        "group": "Labor market",
+        "why": "Built after the tracker behind the public PM-vs-design debate proved "
+               "bot-walled and unverifiable. Greenhouse/Lever/Ashby publish company job "
+               "boards as open JSON — primary sources. A fixed ~40-company panel gives us "
+               "the PM:designer ratio with a documented title classifier.",
+        "watch": "Panel skews infra-heavy, so the level runs above market-wide estimates; "
+                 "the direction across snapshots is the signal. Series starts June 2026.",
+        "feeds": "Role-mix signals card, check-in brief.",
+    },
+    "btos": {
+        "group": "Adoption & usage",
+        "why": "The only nationally representative, high-frequency (biweekly) measure of "
+               "firm AI adoption — 1.2M businesses surveyed by the Census Bureau. It "
+               "calibrates the model's entire adoption curve.",
+        "watch": "Question wording changed since 2023 (production use vs any business "
+                 "function); national figures need a ~2x tech-sector scaling.",
+        "feeds": "Firm adoption-start distribution (backcast), signals card.",
+    },
+    "aei": {
+        "group": "Adoption & usage",
+        "why": "The only public dataset mapping real AI usage to official O*NET task "
+               "statements — which is what lets capability curves be anchored to measured "
+               "behavior per task category instead of guessed. Also our individual-usage "
+               "concentration measure (178 countries).",
+        "watch": "Observes one assistant (Claude), which is text-first — visual-production "
+                 "automation is undercounted; usage is not the same as work performed.",
+        "feeds": "Capability-curve anchoring, categories page, adoption-concentration card.",
+    },
+    "ai_prices": {
+        "group": "Adoption & usage",
+        "why": "No historical API for AI prices exists, so we built our own: each pull "
+               "snapshots ~340 models' per-token prices from OpenRouter's open catalog. "
+               "It is the tripwire for the model's cost-decline assumption — and for the "
+               "capex-subsidy reversal scenario.",
+        "watch": "Accumulates from June 2026; also carries the wage comparison series "
+                 "(Employment Cost Index via FRED).",
+        "feeds": "AI-cost-decline assumption, price story scene, signals card.",
+    },
+    "design_demand": {
+        "group": "Demand & economy",
+        "why": "The elasticity question itself, measured three ways: Census revenue for "
+               "design industries (purchased design), Google Play releases (designed "
+               "output shipped), and Census business formation (the extensive margin — "
+               "new companies as future design consumers). Plus the fed funds rate, "
+               "because appetite tracks capital conditions (corr −0.5 since 2020).",
+        "watch": "No PPI exists for design services (revenue can't split price from "
+                 "quantity); app releases absorb platform-policy shocks; formation "
+                 "filings are not employer firms.",
+        "feeds": "Evidence ratio, formation line, regime watch — the story's closing scenes.",
+    },
+    "web_quality": {
+        "group": "Demand & economy",
+        "why": "The good-enough-vs-arms-race discriminator needs the *distribution* of "
+               "design quality over time, and HTTP Archive's Lighthouse percentiles "
+               "across millions of real sites are the only public series shaped like "
+               "that — floor (p10) vs ceiling (p90), monthly since 2017.",
+        "watch": "Technical quality only (no Lighthouse for judgment); the ceiling is "
+                 "censored near the scale max, so an arms race wouldn't show here.",
+        "feeds": "Quality story scene, gap signals card, check-in good-enough watch.",
+    },
+    "onet_tasks": {
+        "group": "Mapping",
+        "why": "The official task statements per occupation — the join key that turns "
+               "AEI's task-level usage into design-occupation capability anchors without "
+               "keyword guessing (which, when we tried it, matched garment and database "
+               "design).",
+        "watch": "Task statements update slowly and lag how design work actually changes.",
+        "feeds": "Category maturity profile behind the capability curves.",
+    },
+    "levels_fyi": {
+        "group": "Stubs",
+        "why": "Designer compensation by company and level would calibrate wage dynamics "
+               "and provide the premium-segment price series the quality discriminator is "
+               "missing. Official API access is request-gated; the adapter waits.",
+        "watch": "Not yet active.",
+        "feeds": "(future) wage-by-seniority calibration, premium-price watch.",
+    },
+}
+
+REJECTED_SOURCES = [
+    ("TrueUp", "the tracker behind the public PM-vs-design debate — Cloudflare-walled "
+               "against both plain and headless fetching, so its numbers can't be "
+               "independently verified or refreshed. We rebuilt the ratio from the "
+               "primary job boards instead."),
+    ("Statista and stat-aggregator blogs", "paywalled or unsourced re-aggregations; "
+               "every number we use must trace to a primary collector."),
+    ("LinkedIn Economic Graph", "rich but access-gated and methodologically opaque; "
+               "no machine-readable public series."),
+    ("AIGA Design Census", "discontinued after 2019 — predates everything this model "
+               "is about."),
+    ("One-off vendor surveys", "(state-of-X PDFs) cited as context in the story where "
+               "verified, but never wired into the pipeline: no consistent time series, "
+               "shifting methodology, marketing incentives."),
+]
+
+
+def page_data() -> str:
+    from ..ingest import SOURCES
+
+    manifest = {}
+    mpath = Path("data/manifest.json")
+    if mpath.exists():
+        manifest = json.loads(mpath.read_text())
+
+    groups: dict[str, list[str]] = {}
+    for key, info in SOURCE_RATIONALE.items():
+        groups.setdefault(info["group"], []).append(key)
+
+    sections = []
+    for group in ("Labor market", "Adoption & usage", "Demand & economy", "Mapping", "Stubs"):
+        cards = []
+        for key in groups.get(group, []):
+            info = SOURCE_RATIONALE[key]
+            cls = SOURCES.get(key)
+            m = manifest.get(key, {})
+            fresh = m.get("fetched_at", "")[:10]
+            rows = sum(m.get("rows", {}).values()) if m.get("rows") else None
+            meta = f"{cls.cadence if cls else ''}"
+            if fresh:
+                meta += f" &middot; last pulled {fresh}"
+            if rows:
+                meta += f" &middot; {rows:,} rows"
+            cards.append(
+                f'<div class="panel">'
+                f'<div style="font-family:-apple-system,sans-serif;font-size:.95rem"><b>{cls.description if cls else key}</b></div>'
+                f'<div style="font-family:-apple-system,sans-serif;font-size:.72rem;color:{MUTED};margin-bottom:8px">{meta}</div>'
+                f'<p style="font-size:.93rem"><b>Why this source:</b> {info["why"]}</p>'
+                f'<p style="font-size:.85rem;color:{MUTED};margin-top:6px"><b>Watch out:</b> {info["watch"]}</p>'
+                f'<p style="font-family:-apple-system,sans-serif;font-size:.75rem;color:{MUTED};margin-top:6px">Feeds: {info["feeds"]}</p>'
+                f"</div>"
+            )
+        sections.append(f"<h2 style='font-size:1.25rem;margin:26px 0 4px'>{group}</h2>" + "".join(cards))
+
+    rejected = "".join(
+        f"<li style='margin-bottom:8px'><b>{name}</b> — {reason}</li>"
+        for name, reason in REJECTED_SOURCES
+    )
+    body = (
+        f'<div style="font-family:-apple-system,sans-serif;font-size:.85rem;color:{MUTED};max-width:680px">'
+        "Selection rules, applied to everything here: a source must be <b>primary</b> "
+        "(from the original collector), <b>machine-readable</b> (the pipeline refreshes it "
+        "without a human), <b>recurring</b> (a time series, not a snapshot PDF), and "
+        "<b>free to verify</b> (anyone can re-pull the same numbers). Scope: U.S. tech "
+        "labor market, except the AI-usage and web-quality sources, which are global.</div>"
+        + "".join(sections)
+        + "<h2 style='font-size:1.25rem;margin:26px 0 4px'>Sources we rejected, and why</h2>"
+        + f'<ul style="font-size:.9rem;max-width:680px">{rejected}</ul>'
+        + '<p class="note">Annual reports we read but don\'t wire in (no machine-readable '
+        "series): Stanford HAI AI Index (cited for the 280x inference-price decline), "
+        "UX Tools Design Tools Survey, NN/g State of UX. Everything wired in refreshes "
+        "with one command; this page regenerates from the live source registry and pull "
+        "manifest, so it cannot drift from what the pipeline actually does.</p>"
+    )
+    return shell("data.html", "The data",
+                 "Eleven sources, four selection rules, and the rejects. If you trust nothing else here, audit this page.",
+                 body)
+
+
 # ------------------------------------------------------------------- main --
 
 def page_story() -> str:
@@ -908,6 +1102,7 @@ def main() -> int:
         "terrain.html": page_terrain,
         "categories.html": page_categories,
         "signals.html": page_signals,
+        "data.html": page_data,
     }
     for name, builder in pages.items():
         print(f"building {name}...")
