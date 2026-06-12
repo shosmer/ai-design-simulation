@@ -136,6 +136,25 @@ def build_payload() -> dict:
         metric="Number of tech companies, vs a world without AI (band = every run)",
     )
 
+    # Layoffs scene (view 1): the audience's strongest prior, addressed
+    # head-on. Monthly totals from the scraped layoffs.fyi events; the
+    # all-time peak (Jan 2023) predates design-capable AI.
+    lo = pd.read_parquet("data/processed/layoffs_fyi_events.parquet")
+    lo_m = lo.groupby(lo["date"].dt.to_period("M"))["laid_off"].sum().iloc[:-1]  # last month partial
+    lo_m = lo_m[lo_m.index >= "2023-01"]
+    lo_x = [round(p.year + (p.month - 0.5) / 12, 4) for p in lo_m.index]
+    lo_vals = [round(v / 1000, 2) for v in lo_m]
+    peak_i = int(pd.Series(lo_vals).idxmax())
+    views.insert(1, dict(
+        y=[0, 95], ticks=[0, 30, 60, 90], fmt="plain", ref=0.0, refLabel="",
+        series=series_eps(jr_eps, hidden=True), band=None,
+        ann=[{"xi": peak_i, "y": 80,
+              "text": f"{lo_m.index[peak_i].strftime('%b %Y')} peak — ChatGPT was 8 weeks old"}],
+        metric="Measured: tech layoffs per month, thousands (layoffs.fyi)",
+        extras=[{"x": lo_x, "values": lo_vals, "color": "#211d18",
+                 "label": "layoffs (k/mo)"}],
+    ))
+
     # Insert the measured input-price scene before the elasticity regroup.
     # AI line: Stanford AI Index 2025 — inference price at GPT-3.5-level
     # capability fell $20 -> $0.07 per million tokens, Nov 2022 -> Oct 2024
@@ -164,15 +183,15 @@ def build_payload() -> dict:
             {"x": wage_x, "values": wage_vals, "color": "#7a7065",
              "label": f"U.S. wages +{wage_pct}%"}
         )
-    views.insert(3, dict(
+    views.insert(4, dict(
         y=[0, 118], ticks=[0, 25, 50, 75, 100], fmt="plain",
         ref=100.0, refLabel="Jan 2023 = 100",
         series=series_eps(jr_eps, hidden=True), band=None, ann=[],
         metric="Measured input prices: AI output (fixed quality) vs U.S. wages",
         extras=price_extras,
     ))
-    # After the price insert: 7 = total employment, 8 = the open question.
-    views.insert(8, firm_view)
+    # After the layoffs + price inserts: 8 = total employment, 9 = open question slot.
+    views.insert(9, firm_view)
 
     # 8 — measured reality: the elasticity-evidence ratio, if data is pulled
     evidence = None
@@ -238,6 +257,22 @@ def build_payload() -> dict:
             "effect from everything else (like the tech downturn that started "
             "before the AI boom).</p>")},
         {"view": 1, "html": (
+            f"<h3>First — what about the layoffs?</h3>"
+            f"<p>You've seen the headlines; maybe you've lived them. This is "
+            f"every tracked tech layoff, by month, <b>measured, not "
+            f"simulated</b>. The biggest wave on record peaked in "
+            f"<b>{lo_m.index[peak_i].strftime('%B %Y')}</b> — when ChatGPT was "
+            f"eight weeks old and AI could not yet meaningfully do design "
+            f"work. That wave was interest rates and pandemic over-hiring "
+            f"unwinding, not automation. The waves since are real too — but "
+            f"raw layoff counts can't tell you which cuts are AI and which "
+            f"are everything else.</p>"
+            f"<p class='note'>That's exactly why every chart that follows is "
+            f"measured against the dashed line — a world where AI never "
+            f"happened — instead of against headlines. (Data: layoffs.fyi; "
+            f"about a third of tracked events don't report headcounts, so "
+            f"totals undercount.)</p>")},
+        {"view": 2, "html": (
             "<h3>Question one: does it matter how fast AI gets good?</h3>"
             "<p>This is the thing everyone argues about — how capable the "
             "models are, how quickly they're improving. So we ran three "
@@ -250,7 +285,7 @@ def build_payload() -> dict:
             "<p class='note'>The lines track <b>junior designers</b> — the "
             "entry-level jobs people worry about most. Each line is the middle "
             "outcome of nine runs of that scenario.</p>")},
-        {"view": 2, "html": (
+        {"view": 3, "html": (
             f"<h3>Surprisingly little.</h3>"
             f"<p>By 2035, the slow, moderate, and fast worlds all end up within "
             f"a few percentage points of each other. The speed of AI progress — "
@@ -259,7 +294,7 @@ def build_payload() -> dict:
             f"has no effect on design jobs. It says the <i>size</i> of that "
             f"effect is decided by something other than how fast the technology "
             f"improves. Keep scrolling for what that something is.</p>")},
-        {"view": 3, "html": (
+        {"view": 4, "html": (
             f"<h3>One input is in free fall</h3>"
             f"<p>Before asking what AI does to design jobs, watch prices — "
             f"<b>measured, not simulated</b>. The black line is the cost of AI "
@@ -272,7 +307,7 @@ def build_payload() -> dict:
             f"human time to direct and review it, which falls far more slowly. "
             f"Read direction and slope, not arithmetic. Sources: Stanford AI "
             f"Index 2025; Employment Cost Index.</p>")},
-        {"view": 4, "html": (
+        {"view": 5, "html": (
             f"<h3>The variable that matters: appetite</h3>"
             f"<p>These are the <b>exact same 27 runs</b>, regrouped by a "
             f"different question: <i>when design gets cheaper — and you just "
@@ -286,7 +321,7 @@ def build_payload() -> dict:
             f"<b style='color:#2e6f9e'>growing-appetite world</b>, cheaper "
             f"design means more things get designed — {jr_hi_pct}% <i>more</i> "
             f"junior jobs. Same AI. Opposite outcomes.</p>")},
-        {"view": 5, "html": (
+        {"view": 6, "html": (
             "<h3>Every future we found</h3>"
             "<p>The shaded band shows every single run — best case to worst, "
             "every assumption, every roll of the dice. Nearly all of that "
@@ -295,7 +330,7 @@ def build_payload() -> dict:
             "plausible futures, and which lever moves you between them. "
             "<b>What it can't say:</b> which future we'll actually get. Treat "
             "the band as the honest answer.</p>")},
-        {"view": 6, "html": (
+        {"view": 7, "html": (
             f"<h3>What happens to paychecks</h3>"
             f"<p>Same worlds, now viewed through the pay gap between senior and "
             f"junior designers — again measured against the no-AI world, so "
@@ -308,13 +343,13 @@ def build_payload() -> dict:
             f"<p class='note'>Worth sitting with: the world that's better for "
             f"design jobs is also the more <i>equal</i> one. Demand, not the "
             f"technology, decides both.</p>")},
-        {"view": 7, "html": (
+        {"view": 8, "html": (
             f"<h3>The whole profession, one chart</h3>"
             f"<p>Counting every designer — junior through senior — the same AI "
             f"either shrinks the field by about {tot_lo_pct}% or grows it by "
             f"about {tot_hi_pct}%. The difference isn't the technology. It's "
             f"whether cheaper design expands what gets designed.</p>")},
-        {"view": 8, "html": (
+        {"view": 9, "html": (
             f"<h3>Where new demand comes from</h3>"
             f"<p>Part of the growth isn't existing companies doing more — it's "
             f"<b>companies that wouldn't otherwise exist</b>. The model lets "
@@ -327,7 +362,7 @@ def build_payload() -> dict:
             f"world is already showing its fingerprint: new tech-company "
             f"filings are running well above their 2023 pace. You'll see that "
             f"measured line in a moment.</p>")},
-        {"view": 9, "html": (
+        {"view": 10, "html": (
             "<h3>So which world are we in?</h3>"
             "<p>Honestly: the historical data can't settle it. We tested the "
             "model against three years of job postings and government surveys "
@@ -472,7 +507,8 @@ TEMPLATE = """<!DOCTYPE html>
   <p><b>Data.</b> Capability curves anchored to O*NET design-occupation task statements
   joined to the Anthropic Economic Index; firm adoption calibrated to the Census Bureau's
   Business Trends and Outlook Survey; labor-market context from BLS OEWS and Indeed
-  Hiring Lab; company formation from Census Business Formation Statistics. The model
+  Hiring Lab; company formation from Census Business Formation Statistics; layoff
+  events from layoffs.fyi. The model
   includes firm entry and exit — new firms arrive faster as design output gets cheaper. The 280x figure is the Stanford AI Index 2025's measured decline in
   inference cost at fixed (GPT-3.5-level) capability, Nov 2022 &ndash; Oct 2024; in the
   model, AI cost per task falls with a 24-month half-life toward an orchestration-cost
@@ -569,7 +605,7 @@ function drawAnn(view) {
       fill: '#211d18',
     }, gAnn);
     t.textContent = a.text;
-    requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+    t.classList.add('show');
   }
 }
 function render(state, view) {
@@ -622,6 +658,13 @@ function setView(i) {
   gAnn.innerHTML = '';
   metricEl.textContent = view.metric;
   refLbl.textContent = view.refLabel;
+  if (window.INSTANT) {  // ?view=N debug/screenshot mode: no tween
+    cur = to;
+    drawTicks(view);
+    render(to, view);
+    drawAnn(view);
+    return;
+  }
   const t0 = performance.now(), DUR = 950;
   // band: if appearing/disappearing, snap shape but fade via CSS
   const fromBand = from.band || to.band, toBand = to.band || from.band;
@@ -671,6 +714,7 @@ stepEls.forEach(s => obs.observe(s));
 // init (and ?view=N for screenshots: jump to scene, hide prose chrome)
 const q = new URLSearchParams(location.search).get('view');
 if (q !== null) {
+  window.INSTANT = true;
   document.querySelector('header').style.display = 'none';
   document.querySelector('.hint').style.display = 'none';
   stepsRoot.style.display = 'none';

@@ -77,11 +77,17 @@
   },
   "layoffs_fyi": {
     "source": "layoffs_fyi",
-    "fetched_at": "2026-06-11T00:26:17",
-    "raw_files": [],
-    "processed_files": [],
-    "rows": {},
-    "notes": "No export found at data/manual/layoffs_fyi.csv. Download the CSV from the layoffs.fyi Airtable view and drop it there, then re-run."
+    "fetched_at": "2026-06-11T22:09:26",
+    "raw_files": [
+      "data/raw/layoffs_fyi/2026-06-11/layoffs_shared_view.json"
+    ],
+    "processed_files": [
+      "data/processed/layoffs_fyi_events.parquet"
+    ],
+    "rows": {
+      "events": 4448
+    },
+    "notes": ""
   },
   "levels_fyi": {
     "source": "levels_fyi",

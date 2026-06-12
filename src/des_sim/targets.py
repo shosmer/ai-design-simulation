@@ -247,6 +247,21 @@ def tech_firm_formation() -> pd.DataFrame:
     return df.sort_values("date")
 
 
+def tech_layoffs_monthly() -> pd.DataFrame:
+    """Monthly tech layoffs (layoffs.fyi events, summed headcounts).
+
+    Caveats: ~1/3 of tracked events report no headcount, so totals
+    undercount; attribution is impossible from counts alone — the all-time
+    peak (Jan 2023) predates design-capable AI. Credit layoffs.fyi.
+    """
+    df = _read("layoffs_fyi_events.parquet")
+    monthly = (
+        df.groupby(df["date"].dt.to_period("M"))["laid_off"].sum().rename("laid_off").reset_index()
+    )
+    monthly.columns = ["month", "laid_off"]
+    return monthly
+
+
 def design_revenue() -> pd.DataFrame:
     """Census SAS revenue (via FRED) for design service industries, nominal $M.
 
