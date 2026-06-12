@@ -42,6 +42,7 @@ NAV = [
     ("dots.html", "Designers as dots", "4,000 simulated careers, two worlds"),
     ("flows.html", "Where the work goes", "task flows: people vs AI"),
     ("futures.html", "27 futures", "one possible world at a time"),
+    ("terrain.html", "The terrain of futures", "the cliff runs along one axis"),
     ("categories.html", "Five kinds of design work", "what automates first"),
     ("signals.html", "Which world are we in?", "live measured signals"),
 ]
@@ -461,6 +462,149 @@ step();"""
                  body, script.replace("__DATA__", json.dumps(data)))
 
 
+# ---------------------------------------------------------------- terrain --
+
+TERRAIN_ANCHORS = [0.08, 0.15, 0.25, 0.35, 0.45]
+TERRAIN_SEEDS = [0, 1]
+
+
+def terrain_grid() -> pd.DataFrame:
+    """Outcome grid over (capability anchor x elasticity): 90 runs, cached."""
+    cache = RESULTS / "terrain_grid.csv"
+    if cache.exists():
+        return pd.read_csv(cache)
+    loc, scale, _ = calibrate_adoption()
+    no_ai = {
+        seed: Simulation(elasticity=1.5, months=MONTHS, seed=seed,
+                         start_anchor=START_ANCHOR, adoption_loc=loc,
+                         adoption_scale=scale, ai_scale=0.0).run()
+        for seed in TERRAIN_SEEDS
+    }
+    rows = []
+    for a in TERRAIN_ANCHORS:
+        cats = build_categories(anchor_max=a)
+        for eps in EXPLORE_EPS:
+            for seed in TERRAIN_SEEDS:
+                df = Simulation(
+                    elasticity=eps, months=MONTHS, seed=seed,
+                    start_anchor=START_ANCHOR, adoption_loc=loc,
+                    adoption_scale=scale, categories=cats,
+                ).run()
+                base = no_ai[seed]
+                sub = df[df["month"] % 6 == 0]
+                for _, r in sub.iterrows():
+                    m = int(r["month"])
+                    rows.append({
+                        "anchor": a, "eps": eps, "seed": seed, "month": m,
+                        "junior": r["employed_junior"] / base["employed_junior"].iloc[m],
+                        "total": r["employed_total"] / base["employed_total"].iloc[m],
+                    })
+            print(f"  terrain grid: anchor={a} eps={eps}")
+    out = pd.DataFrame(rows)
+    out.to_csv(cache, index=False)
+    return out
+
+
+def page_terrain() -> str:
+    grid = terrain_grid()
+    months = [int(m) for m in sorted(grid["month"].unique())]
+    data = {"eps": EXPLORE_EPS, "anchors": TERRAIN_ANCHORS, "months": months, "metrics": {}}
+    for key in ("junior", "total"):
+        g = grid.groupby(["anchor", "eps", "month"])[key].median().reset_index()
+        g[key] = g.groupby(["anchor", "eps"])[key].transform(
+            lambda s: s.rolling(3, center=True, min_periods=1).mean()
+        )
+        lookup = {
+            (r["anchor"], r["eps"], r["month"]): float(round(r[key], 3))
+            for _, r in g.iterrows()
+        }
+        data["metrics"][key] = [
+            [[lookup[(a, e, m)] for e in EXPLORE_EPS] for a in TERRAIN_ANCHORS]
+            for m in months
+        ]
+    body = """
+<div style="display:flex;gap:14px;align-items:center;margin-bottom:10px;font-family:-apple-system,sans-serif;font-size:.85rem;flex-wrap:wrap">
+  <span id="metricbtns">
+    <button class="ctl on" data-m="junior">junior designers</button>
+    <button class="ctl" data-m="total">all designers</button></span>
+  <button class="ctl" id="play">&#9654; play</button>
+  <input id="scrub" type="range" min="0" max="25" value="25" style="flex:1;min-width:160px">
+  <span id="datelabel" style="min-width:60px;color:var(--muted)"></span>
+</div>
+<div class="panel" style="cursor:grab">
+  <svg id="terrain" viewBox="0 0 900 520" style="width:100%"></svg></div>
+<p class="note">Every vertex is the median of real simulation runs at that
+(appetite, capability) pair, measured against paired no-AI worlds. The flat
+translucent sheet is the no-AI world (1.0x). <b>Drag to rotate</b>, and notice
+the shape of the claim this whole project makes: the terrain is a cliff along
+the <i>appetite</i> axis and nearly flat along the <i>AI capability</i> axis.
+Press play to watch the cliff grow out of flat ground — in 2026 the terrain
+barely exists. A model is a map of assumption space, not a forecast; this is
+the map.</p>"""
+    script = """
+const D=__DATA__;
+const svg=document.getElementById('terrain');
+const W=900,H=520,CX=W/2,CY=H/2+30,SC=290,ZS=170;
+const NE=D.eps.length,NA=D.anchors.length;
+let theta=-0.65, frame=D.months.length-1, metric='junior', playing=false;
+function val(f,ia,ie){return D.metrics[metric][f][ia][ie];}
+function project(ix,iy,z){
+  const x=(ix/(NE-1)-0.5)*2.0, y=(iy/(NA-1)-0.5)*1.1;
+  const xr=x*Math.cos(theta)-y*Math.sin(theta), yr=x*Math.sin(theta)+y*Math.cos(theta);
+  return [CX+xr*SC, CY+yr*SC*0.42-(z-1)*ZS, yr];
+}
+function color(v){
+  if(v>=1){const t=Math.min((v-1)/0.7,1);return `rgb(${Math.round(190-144*t)},${Math.round(185-74*t)},${Math.round(178-20*t)})`;}
+  const t=Math.min((1-v)/0.45,1);
+  return `rgb(${Math.round(190+1*t)},${Math.round(185-115*t)},${Math.round(178-127*t)})`;
+}
+function render(){
+  let out='';
+  // reference plane z=1
+  const rp=[project(0,0,1),project(NE-1,0,1),project(NE-1,NA-1,1),project(0,NA-1,1)];
+  out+=`<polygon points="${rp.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="rgba(33,29,24,0.07)" stroke="#c9c0b2" stroke-dasharray="4 3"/>`;
+  // surface quads, painter's order
+  const quads=[];
+  for(let ia=0;ia<NA-1;ia++)for(let ie=0;ie<NE-1;ie++){
+    const c=[[ie,ia],[ie+1,ia],[ie+1,ia+1],[ie,ia+1]];
+    const pts=c.map(([e,a])=>project(e,a,val(frame,a,e)));
+    const depth=pts.reduce((s,p)=>s+p[2],0)/4;
+    const v=(val(frame,ia,ie)+val(frame,ia,ie+1)+val(frame,ia+1,ie)+val(frame,ia+1,ie+1))/4;
+    quads.push({depth,pts,v});
+  }
+  quads.sort((q1,q2)=>q1.depth-q2.depth);
+  for(const q of quads)
+    out+=`<polygon points="${q.pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="${color(q.v)}" stroke="#faf7f0" stroke-width="0.8" fill-opacity="0.92"/>`;
+  // axis labels at projected edge midpoints (pushed outward)
+  const ax=project((NE-1)/2,-0.7,1), ay=project(-1.1,(NA-1)/2,1);
+  out+=`<text x="${ax[0]}" y="${ax[1]+18}" text-anchor="middle" class="chartlabel">appetite for design &rarr; (elasticity ${D.eps[0]} &ndash; ${D.eps[NE-1]})</text>`;
+  out+=`<text x="${ay[0]}" y="${ay[1]}" text-anchor="middle" class="chartlabel">AI capability &rarr;</text>`;
+  // corner value tags
+  const tags=[[NE-1,NA-1],[0,NA-1]];
+  for(const [e,a] of tags){const v=val(frame,a,e);const p=project(e,a,v);
+    out+=`<text x="${p[0]+6}" y="${p[1]-8}" class="chartlabel" style="font-weight:600" fill="${v>=1?'#2e6f9e':'#bf4633'}">${v.toFixed(2)}x</text>`;}
+  svg.innerHTML=out;
+  const m=D.months[frame], yr=2023+Math.floor(m/12), mo=m%12+1;
+  document.getElementById('datelabel').textContent=yr+'-'+String(mo).padStart(2,'0');
+  document.getElementById('scrub').value=frame;
+}
+document.getElementById('scrub').max=D.months.length-1;
+let dragging=false,lastX=0;
+svg.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;});
+window.addEventListener('pointermove',e=>{if(dragging){theta+=(e.clientX-lastX)*0.006;lastX=e.clientX;render();}});
+window.addEventListener('pointerup',()=>dragging=false);
+document.getElementById('scrub').addEventListener('input',e=>{playing=false;document.getElementById('play').classList.remove('on');frame=+e.target.value;render();});
+document.getElementById('play').addEventListener('click',e=>{playing=!playing;e.target.classList.toggle('on',playing);if(playing&&frame>=D.months.length-1)frame=0;});
+setInterval(()=>{if(playing){frame=Math.min(frame+1,D.months.length-1);render();if(frame>=D.months.length-1){playing=false;document.getElementById('play').classList.remove('on');}}},350);
+document.getElementById('metricbtns').addEventListener('click',e=>{
+  if(!e.target.dataset.m)return;metric=e.target.dataset.m;
+  document.querySelectorAll('#metricbtns .ctl').forEach(b=>b.classList.toggle('on',b===e.target));render();});
+render();"""
+    return shell("terrain.html", "The terrain of futures",
+                 "The headline finding is a geometric claim — so here it is as geometry. Drag to rotate.",
+                 body, script.replace("__DATA__", json.dumps(data)))
+
+
 # ------------------------------------------------------------- categories --
 
 def page_categories() -> str:
@@ -645,6 +789,7 @@ def main() -> int:
         "dots.html": page_dots,
         "flows.html": page_flows,
         "futures.html": page_futures,
+        "terrain.html": page_terrain,
         "categories.html": page_categories,
         "signals.html": page_signals,
     }
