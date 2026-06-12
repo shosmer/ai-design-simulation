@@ -3,5 +3,7 @@ __pycache__/
 *.egg-info/
 data/raw/
 data/processed/
+data/checkins/
+data/manual/
 .DS_Store
 writeup/linkedin-post.md

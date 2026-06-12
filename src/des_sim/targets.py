@@ -247,6 +247,17 @@ def tech_firm_formation() -> pd.DataFrame:
     return df.sort_values("date")
 
 
+def management_postings() -> pd.DataFrame:
+    """Indeed postings index for the Management sector — the middle-management
+    compression watch. All management, not design management specifically
+    (no public series breaks that out); read direction, not level."""
+    df = _read("hiring_lab_postings_by_sector.parquet")
+    out = df[df["display_name"] == "Management"].copy()
+    return out[["date", "indeed_job_postings_index"]].rename(
+        columns={"indeed_job_postings_index": "postings_index"}
+    )
+
+
 def tech_layoffs_monthly() -> pd.DataFrame:
     """Monthly tech layoffs (layoffs.fyi events, summed headcounts).
 

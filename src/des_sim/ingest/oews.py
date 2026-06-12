@@ -22,8 +22,10 @@ DESIGN_SOCS = {
     "27-1021",  # commercial and industrial designers
     "27-1024",  # graphic designers
     "27-1014",  # special effects artists and animators
-    "27-1011",  # art directors
+    "27-1011",  # art directors (closest SOC to design managers)
     "15-1252",  # software developers (comparison group)
+    "11-3021",  # computer and information systems managers (tech-management proxy)
+    "11-2011",  # advertising and promotions managers (creative-management proxy)
 }
 
 

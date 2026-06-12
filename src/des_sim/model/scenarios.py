@@ -93,6 +93,7 @@ def run_all() -> pd.DataFrame:
                     "employed_total",
                     "senior_premium",
                     "n_firms",
+                    "manager_seats",
                 ):
                     df[f"{col}_vs_cf"] = df[col] / base[col]
                 df["scenario"] = name
@@ -155,6 +156,7 @@ def robustness_summary(df: pd.DataFrame) -> dict:
                 "total_end_ratio": float(g["employed_total_vs_cf"].iloc[-1]),
                 "premium_end": float(g["senior_premium_vs_cf"].iloc[-1]),
                 "firms_end_ratio": float(g["n_firms_vs_cf"].iloc[-1]),
+                "managers_end_ratio": float(g["manager_seats_vs_cf"].iloc[-1]),
                 "ai_task_share_end": float(g["ai_task_share"].iloc[-1]),
             }
         )
@@ -178,6 +180,10 @@ def robustness_summary(df: pd.DataFrame) -> dict:
         "firms_end_ratio_range": [
             float(per["firms_end_ratio"].min()),
             float(per["firms_end_ratio"].max()),
+        ],
+        "managers_end_ratio_range": [
+            float(per["managers_end_ratio"].min()),
+            float(per["managers_end_ratio"].max()),
         ],
     }
     return summary

@@ -45,7 +45,7 @@
   },
   "oews": {
     "source": "oews",
-    "fetched_at": "2026-06-11T00:26:13",
+    "fetched_at": "2026-06-11T23:46:36",
     "raw_files": [
       "data/raw/oews/2026-06-11/oesm25nat.zip"
     ],
@@ -53,7 +53,7 @@
       "data/processed/oews_design_occupations.parquet"
     ],
     "rows": {
-      "design_occupations": 6
+      "design_occupations": 8
     },
     "notes": ""
   },

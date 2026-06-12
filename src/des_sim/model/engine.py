@@ -78,6 +78,13 @@ FIRM_EXIT_RATE = 0.004            # monthly hazard
 FIRM_ENTRY_COST_ELASTICITY = 1.0  # entry response to (p0 / p)
 ENTRANT_SIZE_FACTOR = 0.3         # vs the initial mean firm size
 
+# Management layer (derived seats, not agents): firms need roughly one design
+# manager per SPAN designers; AI adoption widens the span (org flattening /
+# pod structures — the middle-management compression visible in 2026
+# reporting). Seats = sum over firms of ceil(roster / span).
+MANAGER_SPAN_BASE = 7.0
+MANAGER_SPAN_FLATTENING = 0.8  # span at full AI adoption ~= base * 1.8
+
 
 @dataclass
 class TaskCategory:
@@ -479,6 +486,14 @@ class Simulation:
         mean_adoption = float(
             np.mean([f.adoption(t + self.start_anchor) for f in self.firms])
         )
+        manager_seats = 0
+        for f in self.firms:
+            headcount = sum(len(r) for r in f.roster)
+            if headcount:
+                span = MANAGER_SPAN_BASE * (
+                    1 + MANAGER_SPAN_FLATTENING * f.adoption(t + self.start_anchor) * self.ai_scale
+                )
+                manager_seats += math.ceil(headcount / span)
         ai_task_share = sum(
             c.workload_share * self._capability(c, t) * mean_adoption for c in self.categories
         )
@@ -499,6 +514,7 @@ class Simulation:
                 "ai_task_share": ai_task_share,
                 "adoption": mean_adoption,
                 "n_firms": len(self.firms),
+                "manager_seats": manager_seats,
                 "unit_cost_rel": self._unit_cost(mean_adoption, t, self._employment_mix())
                 / self.p0,
                 "wage_junior": self.wages[JUNIOR],

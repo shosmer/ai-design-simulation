@@ -11,6 +11,7 @@
       "total_end_ratio": 0.9405845711547676,
       "premium_end": 1.0659935335762927,
       "firms_end_ratio": 1.1271676300578035,
+      "managers_end_ratio": 0.6041666666666666,
       "ai_task_share_end": 0.6287428119362113
     },
     {
@@ -23,6 +24,7 @@
       "total_end_ratio": 1.04713560551124,
       "premium_end": 0.9778674221930339,
       "firms_end_ratio": 1.427710843373494,
+      "managers_end_ratio": 0.6877828054298643,
       "ai_task_share_end": 0.622429229555763
     },
     {
@@ -35,6 +37,7 @@
       "total_end_ratio": 1.237454100367197,
       "premium_end": 1.0216067619117584,
       "firms_end_ratio": 1.6923076923076923,
+      "managers_end_ratio": 0.817658349328215,
       "ai_task_share_end": 0.6212950473393117
     },
     {
@@ -47,6 +50,7 @@
       "total_end_ratio": 1.537374221370388,
       "premium_end": 0.7918626173978968,
       "firms_end_ratio": 1.2890173410404624,
+      "managers_end_ratio": 0.9107142857142857,
       "ai_task_share_end": 0.6420780296353764
     },
     {
@@ -59,6 +63,7 @@
       "total_end_ratio": 1.5562001450326324,
       "premium_end": 0.7808064307859757,
       "firms_end_ratio": 1.2349397590361446,
+      "managers_end_ratio": 0.9200603318250377,
       "ai_task_share_end": 0.6398107012181184
     },
     {
@@ -71,6 +76,7 @@
       "total_end_ratio": 1.9045287637698898,
       "premium_end": 0.7303349372965544,
       "firms_end_ratio": 1.7461538461538462,
+      "managers_end_ratio": 1.143953934740883,
       "ai_task_share_end": 0.6321952648387267
     },
     {
@@ -83,6 +89,7 @@
       "total_end_ratio": 1.8835649257307139,
       "premium_end": 0.5843018327987727,
       "firms_end_ratio": 1.1965317919075145,
+      "managers_end_ratio": 1.0758928571428572,
       "ai_task_share_end": 0.6341521831865458
     },
     {
@@ -95,6 +102,7 @@
       "total_end_ratio": 1.8508581097413586,
       "premium_end": 0.500539828576897,
       "firms_end_ratio": 1.1746987951807228,
+      "managers_end_ratio": 1.0497737556561086,
       "ai_task_share_end": 0.6387404891578118
     },
     {
@@ -107,6 +115,7 @@
       "total_end_ratio": 2.2411260709914322,
       "premium_end": 0.5445554475212295,
       "firms_end_ratio": 1.6153846153846154,
+      "managers_end_ratio": 1.307101727447217,
       "ai_task_share_end": 0.6369551896539546
     },
     {
@@ -119,6 +128,7 @@
       "total_end_ratio": 1.069477719214183,
       "premium_end": 1.0016037054062341,
       "firms_end_ratio": 1.3410404624277457,
+      "managers_end_ratio": 0.6949404761904762,
       "ai_task_share_end": 0.6271157004367885
     },
     {
@@ -131,6 +141,7 @@
       "total_end_ratio": 1.0952380952380953,
       "premium_end": 0.979932207702189,
       "firms_end_ratio": 1.3975903614457832,
+      "managers_end_ratio": 0.7043740573152338,
       "ai_task_share_end": 0.64019033901626
     },
     {
@@ -143,6 +154,7 @@
       "total_end_ratio": 1.2747858017135862,
       "premium_end": 0.9443154261932855,
       "firms_end_ratio": 1.8384615384615384,
+      "managers_end_ratio": 0.8618042226487524,
       "ai_task_share_end": 0.6354915186660464
     },
     {
@@ -155,6 +167,7 @@
       "total_end_ratio": 1.4956875898418782,
       "premium_end": 0.824530100155336,
       "firms_end_ratio": 1.2947976878612717,
+      "managers_end_ratio": 0.8898809523809523,
       "ai_task_share_end": 0.6340365869297486
     },
     {
@@ -167,6 +180,7 @@
       "total_end_ratio": 1.4254290548706792,
       "premium_end": 0.903863993590005,
       "firms_end_ratio": 1.2469879518072289,
+      "managers_end_ratio": 0.8536953242835595,
       "ai_task_share_end": 0.6274924196643199
     },
     {
@@ -179,6 +193,7 @@
       "total_end_ratio": 1.7261321909424725,
       "premium_end": 0.8257775778872398,
       "firms_end_ratio": 1.7153846153846153,
+      "managers_end_ratio": 1.0710172744721689,
       "ai_task_share_end": 0.6320218308326407
     },
     {
@@ -191,6 +206,7 @@
       "total_end_ratio": 1.708433157642549,
       "premium_end": 0.5875547759620909,
       "firms_end_ratio": 1.1965317919075145,
+      "managers_end_ratio": 0.9970238095238095,
       "ai_task_share_end": 0.634295923797461
     },
     {
@@ -203,6 +219,7 @@
       "total_end_ratio": 1.789944404157602,
       "premium_end": 0.5607643433375071,
       "firms_end_ratio": 1.3253012048192772,
+      "managers_end_ratio": 1.0452488687782806,
       "ai_task_share_end": 0.640640310343995
     },
     {
@@ -215,6 +232,7 @@
       "total_end_ratio": 2.33812729498164,
       "premium_end": 0.5357450302541731,
       "firms_end_ratio": 1.6923076923076923,
+      "managers_end_ratio": 1.3704414587332054,
       "ai_task_share_end": 0.633746410002092
     },
     {
@@ -227,6 +245,7 @@
       "total_end_ratio": 0.962386200287494,
       "premium_end": 1.0585822367749287,
       "firms_end_ratio": 1.1271676300578035,
+      "managers_end_ratio": 0.6071428571428571,
       "ai_task_share_end": 0.6234724852478535
     },
     {
@@ -239,6 +258,7 @@
       "total_end_ratio": 0.8970268310369833,
       "premium_end": 1.1420353403004335,
       "firms_end_ratio": 1.3674698795180722,
+      "managers_end_ratio": 0.6048265460030166,
       "ai_task_share_end": 0.6228691632314048
     },
     {
@@ -251,6 +271,7 @@
       "total_end_ratio": 1.289779681762546,
       "premium_end": 0.9687385052155695,
       "firms_end_ratio": 1.7307692307692308,
+      "managers_end_ratio": 0.8310940499040307,
       "ai_task_share_end": 0.6145262901539515
     },
     {
@@ -263,6 +284,7 @@
       "total_end_ratio": 1.3643986583612842,
       "premium_end": 0.8621673422757682,
       "firms_end_ratio": 1.1213872832369942,
+      "managers_end_ratio": 0.8125,
       "ai_task_share_end": 0.6205803717772524
     },
     {
@@ -275,6 +297,7 @@
       "total_end_ratio": 1.4360647812424463,
       "premium_end": 0.9682086674876281,
       "firms_end_ratio": 1.3734939759036144,
+      "managers_end_ratio": 0.8597285067873304,
       "ai_task_share_end": 0.6324172270936893
     },
     {
@@ -287,6 +310,7 @@
       "total_end_ratio": 1.8393512851897185,
       "premium_end": 0.7871255441372295,
       "firms_end_ratio": 1.623076923076923,
+      "managers_end_ratio": 1.111324376199616,
       "ai_task_share_end": 0.6287618949619649
     },
     {
@@ -299,6 +323,7 @@
       "total_end_ratio": 1.8241494968854814,
       "premium_end": 0.7102861674898258,
       "firms_end_ratio": 1.1965317919075145,
+      "managers_end_ratio": 1.037202380952381,
       "ai_task_share_end": 0.6310276902654266
     },
     {
@@ -311,6 +336,7 @@
       "total_end_ratio": 1.9842881314962533,
       "premium_end": 0.7292877625853765,
       "firms_end_ratio": 1.3493975903614457,
+      "managers_end_ratio": 1.1402714932126696,
       "ai_task_share_end": 0.6235193265471215
     },
     {
@@ -323,6 +349,7 @@
       "total_end_ratio": 2.122093023255814,
       "premium_end": 0.6708354190883515,
       "firms_end_ratio": 1.3461538461538463,
+      "managers_end_ratio": 1.2303262955854126,
       "ai_task_share_end": 0.6258076472829459
     }
   ],
@@ -344,6 +371,10 @@
     "firms_end_ratio_range": [
       1.1213872832369942,
       1.8384615384615384
+    ],
+    "managers_end_ratio_range": [
+      0.6041666666666666,
+      1.3704414587332054
     ]
   }
 }
