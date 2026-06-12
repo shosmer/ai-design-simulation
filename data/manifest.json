@@ -154,5 +154,19 @@
       "wage_index": 101
     },
     "notes": "1 snapshot date(s) accumulated"
+  },
+  "web_quality": {
+    "source": "web_quality",
+    "fetched_at": "2026-06-12T10:32:47",
+    "raw_files": [
+      "data/raw/web_quality/2026-06-12/a11yScores.json"
+    ],
+    "processed_files": [
+      "data/processed/web_quality_a11y_scores.parquet"
+    ],
+    "rows": {
+      "a11y_scores": 176
+    },
+    "notes": ""
   }
 }

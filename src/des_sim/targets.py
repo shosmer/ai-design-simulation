@@ -258,6 +258,22 @@ def management_postings() -> pd.DataFrame:
     )
 
 
+def quality_dispersion() -> pd.DataFrame:
+    """The good-enough vs arms-race discriminator: web quality floor vs ceiling.
+
+    Monthly Lighthouse accessibility percentiles (HTTP Archive, mobile).
+    Commoditization signature: floor (p10) rises, ceiling (p90) stalls, gap
+    compresses. Arms-race signature: both rise, gap holds. Caveats: the
+    ceiling is censored near the scale max (an arms race might not show);
+    technical quality only — the ceiling-side complement is the price of
+    premium design, which has no public series.
+    """
+    df = _read("web_quality_a11y_scores.parquet")
+    out = df[df["client"] == "mobile"].sort_values("date").copy()
+    out["gap"] = out["p90"] - out["p10"]
+    return out[["date", "p10", "p50", "p90", "gap"]]
+
+
 def fed_funds_rate() -> pd.DataFrame:
     """Effective federal funds rate (monthly) — the capital-conditions watch.
 

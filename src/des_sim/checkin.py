@@ -76,6 +76,13 @@ def gather() -> dict:
     except FileNotFoundError:
         r["fed_funds"] = "n/a"
 
+    try:
+        q = targets.quality_dispersion()
+        r["quality_gap"] = round(float(q["gap"].iloc[-1]), 1)
+        r["quality_floor"] = round(float(q["p10"].iloc[-1]), 1)
+    except FileNotFoundError:
+        pass
+
     oews = targets.oews_anchors().set_index("OCC_CODE")
     for soc, key in [("15-1255", "oews_designers"), ("11-3021", "oews_it_managers")]:
         if soc in oews.index:
@@ -138,6 +145,12 @@ def render(r: dict, prev: dict | None) -> str:
         "appetite for design tracks capital conditions; a tightening turn is "
         "red-world pressure regardless of AI news",
     ]
+    if "quality_gap" in r:
+        lines.append(
+            f"- **Web quality gap, p90−p10 (good-enough watch)**: {r['quality_gap']} pts, "
+            f"floor {r['quality_floor']}{delta('quality_gap')} — compressing gap = "
+            "commoditization signature (ceiling censored; premium-price side unmeasured)"
+        )
     if "oews_designers" in r:
         lines.append(f"- Web/digital interface designers (OEWS): {r['oews_designers']}")
     if "sim_junior_2035_range" in r:

@@ -7,6 +7,7 @@ from .layoffs import LayoffsFyi
 from .levels import LevelsFyi
 from .oews import OEWS
 from .onet import OnetTasks
+from .web_quality import WebQuality
 
 SOURCES = {
     cls.name: cls
@@ -20,5 +21,6 @@ SOURCES = {
         OnetTasks,
         DesignDemand,
         AiPrices,
+        WebQuality,
     )
 }

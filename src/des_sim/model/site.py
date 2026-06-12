@@ -801,6 +801,21 @@ def page_signals() -> str:
     except (FileNotFoundError, ValueError):
         pass
     try:
+        q = targets.quality_dispersion()
+        recent = q[q["date"] >= "2023-01-01"]
+        gap0, gap1 = recent["gap"].iloc[0], recent["gap"].iloc[-1]
+        compressing = gap1 < gap0 - 1
+        card("Web quality gap, p90 − p10 (Lighthouse a11y)",
+             [round(v, 1) for v in q["gap"]][-48:], GREEN,
+             f"{gap1:.0f} pts",
+             "converging" if compressing else "holding", GREEN if compressing else MUTED,
+             f"Floor {recent['p10'].iloc[-1]:.0f}, ceiling {recent['p90'].iloc[-1]:.0f}. "
+             "Compressing gap = good-enough commoditization signature; caveat: ceiling "
+             "is censored near scale max, so an arms race wouldn't show here.",
+             "window: last 4 years")
+    except FileNotFoundError:
+        pass
+    try:
         ff = targets.fed_funds_rate()
         fvals = [round(v, 2) for v in ff["value"]]
         card("Fed funds rate (capital conditions)", fvals[-48:], MUTED,

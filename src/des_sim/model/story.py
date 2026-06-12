@@ -217,6 +217,28 @@ def build_payload() -> dict:
         fam="mgr",
     ))
 
+    # Quality-dispersion scene (view 11): the good-enough vs arms-race
+    # discriminator, measured. Floor and ceiling of web quality from HTTP
+    # Archive Lighthouse accessibility percentiles.
+    q = targets.quality_dispersion()
+    q = q[q["date"] >= "2023-01-01"]
+    q_x = [round(d.year + (d.month - 0.5) / 12, 4) for d in q["date"]]
+    q_floor = [round(v, 1) for v in q["p10"]]
+    q_ceiling = [round(v, 1) for v in q["p90"]]
+    views.insert(11, dict(
+        y=[50, 104], ticks=[60, 70, 80, 90, 100], fmt="plain",
+        ref=100.0, refLabel="scale maximum",
+        series=series_eps(jr_eps, hidden=True), band=None, ann=[],
+        metric="Measured: web quality distribution, Lighthouse accessibility (HTTP Archive)",
+        extras=[
+            {"x": q_x, "values": q_floor, "color": "#211d18",
+             "label": f"the floor (p10) {q_floor[-1]:.0f}"},
+            {"x": q_x, "values": q_ceiling, "color": "#7a7065",
+             "label": f"the ceiling (p90) {q_ceiling[-1]:.0f}"},
+        ],
+        fam="quality",
+    ))
+
     # 8 — measured reality: the elasticity-evidence ratio, if data is pulled
     evidence = None
     try:
@@ -426,6 +448,25 @@ def build_payload() -> dict:
             f"that out. In the model, manager seats are derived from team "
             f"sizes and spans, not simulated as individual careers.</p>")},
         {"view": 11, "html": (
+            f"<h3>Is good enough killing great?</h3>"
+            f"<p>The deepest question this model can't yet answer: when AI "
+            f"raises everyone's design baseline, does the premium segment die "
+            f"(quality converges on good-enough) or does the race restart at a "
+            f"higher bar? The two futures leave <b>opposite fingerprints in "
+            f"the distribution of quality</b> — and here's a first measured "
+            f"trace, from Lighthouse accessibility audits across millions of "
+            f"real websites. Since 2023 the floor has climbed "
+            f"{q_floor[0]:.0f} &rarr; {q_floor[-1]:.0f} while the ceiling sits "
+            f"at {q_ceiling[-1]:.0f}. The gap is compressing — quality is "
+            f"converging, so far.</p>"
+            f"<p class='note'><b>Read this one carefully:</b> the compressing "
+            f"gap matches the commoditization signature, but the ceiling sits "
+            f"near the top of the scale — an arms race wouldn't show here even "
+            f"if underway. It would show in the <i>price</i> of premium "
+            f"design, which has no public series yet. And this measures "
+            f"technical quality; nobody has a Lighthouse for judgment. "
+            f"Source: HTTP Archive, monthly, mobile.</p>")},
+        {"view": 12, "html": (
             "<h3>So which world are we in?</h3>"
             "<p>Honestly: the historical data can't settle it. We tested the "
             "model against three years of job postings and government surveys "
