@@ -625,6 +625,13 @@ TEMPLATE = """<!DOCTYPE html>
   model, AI cost per task falls with a 24-month half-life toward an orchestration-cost
   floor. The AEI observes one AI assistant, so visual-production automation is
   undercounted. A model is an argument made precise &mdash; not a forecast.</p>
+  <p><b>Scope.</b> This is a model of the <b>U.S. tech design labor market</b> &mdash;
+  the employment, wage, postings, layoff, and company-formation series are U.S. data;
+  only the AI-usage (Anthropic Economic Index) and web-quality (HTTP Archive) sources
+  are global. Worth holding the wider frame: an estimated <b>~13% of humanity</b>
+  actively uses AI at all (~1.1B people, Jan 2026 estimate), and the U.S. alone
+  accounts for ~22% of measured Claude.ai usage. This story describes the leading
+  edge of AI's labor-market impact, not the world's experience of it.</p>
 </footer>
 
 <script>

@@ -801,6 +801,18 @@ def page_signals() -> str:
     except (FileNotFoundError, ValueError):
         pass
     try:
+        conc = targets.ai_usage_concentration()
+        card("Individual AI adoption (who's actually using it)", [], MUTED,
+             f"US = {conc['us_share']:.0f}%",
+             "narrow + concentrated", MUTED,
+             f"US share of measured Claude.ai usage; top 5 of {conc['n_countries']} countries "
+             f"({', '.join(conc['top5'])}) = {conc['top5_share']:.0f}%. Globally, only ~13% of "
+             "humanity actively uses AI at all (~1.1B people, Jan 2026 est.). Firm-level US "
+             "adoption is the BTOS card; individual-level US series: none good yet.",
+             "snapshot per AEI release (~quarterly)")
+    except FileNotFoundError:
+        pass
+    try:
         q = targets.quality_dispersion()
         recent = q[q["date"] >= "2023-01-01"]
         gap0, gap1 = recent["gap"].iloc[0], recent["gap"].iloc[-1]
@@ -840,7 +852,9 @@ def page_signals() -> str:
 
     body = (
         f'<div style="font-family:-apple-system,sans-serif;font-size:.78rem;color:{MUTED};margin-bottom:14px">'
-        f"Built {dt.date.today():%B %d, %Y} — every card recomputes from fresh data on rebuild.</div>"
+        f"Built {dt.date.today():%B %d, %Y} — every card recomputes from fresh data on rebuild. "
+        f"<b>Scope: U.S. tech labor market</b> unless a card says otherwise; AI usage and web "
+        f"quality are the global sources.</div>"
         '<div style="display:flex;gap:14px;flex-wrap:wrap">' + "".join(cards) + "</div>"
         '<p class="note">The simulation says demand elasticity decides designers\' future; '
         "these are the measured series that will reveal it. Lean chips use simple disclosed thresholds (ratio: ±2% over the trailing year; formation: +5% vs the 2022-24 plateau; postings: −3% y/y) — summaries, not statistical tests. No single card proves anything — "

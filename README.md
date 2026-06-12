@@ -84,6 +84,14 @@ revisions), so public claims should be ranges, not points. See
 
 ## Sources
 
+**Scope disclosure:** this is a model of the **U.S. tech design labor market**.
+Employment (BLS), firm adoption (Census), postings (Indeed US), layoffs, company
+formation, and rates are U.S. series. Global sources where noted: Anthropic
+Economic Index (AI usage; the US is ~22% of measured Claude.ai usage) and HTTP
+Archive (web quality). For context, only ~13% of humanity actively uses AI at
+all (~1.1B people, Jan 2026 estimate) — this model describes the leading edge,
+not the world.
+
 | Source | Cadence | Feeds which model piece |
 |---|---|---|
 | `hiring_lab` | weekly / monthly | Labor demand + matching: Indeed postings indices (aggregate, by sector) and share of postings mentioning AI ([github.com/hiring-lab](https://github.com/hiring-lab), CC-BY-4.0 — cite Hiring Lab) |

@@ -258,6 +258,26 @@ def management_postings() -> pd.DataFrame:
     )
 
 
+def ai_usage_concentration() -> dict:
+    """Who is actually using AI: country concentration of Claude.ai usage.
+
+    Individual-level penetration context for a US-centric dataset. Global
+    adoption is narrow (~13% of humanity actively uses AI, ~1.1B users,
+    Jan 2026 third-party estimate) and concentrated: the US is the largest
+    single country of measured usage. Claude-only; other assistants skew
+    differently, but concentration is the robust feature.
+    """
+    df = _aei()
+    c = df[(df["facet"] == "country") & (df["variable"] == "usage_pct")]
+    c = c[c["geo_id"] != "not_classified"].sort_values("value", ascending=False)
+    return {
+        "us_share": round(float(c[c["geo_id"] == "US"]["value"].iloc[0]), 1),
+        "top5_share": round(float(c.head(5)["value"].sum(), ), 1),
+        "top5": list(c.head(5)["geo_id"]),
+        "n_countries": int(len(c)),
+    }
+
+
 def quality_dispersion() -> pd.DataFrame:
     """The good-enough vs arms-race discriminator: web quality floor vs ceiling.
 
