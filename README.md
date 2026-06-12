@@ -39,7 +39,9 @@ des-sim-backcast            # calibrate to BTOS, fit on 2023-26, project to 2035
 `src/des_sim/model/engine.py` is the vertical slice: designers
 (junior/mid/senior), firms with task routing, demand response, and
 idiosyncratic demand churn, firm entry/exit (entry accelerates as design
-output gets cheaper — the extensive margin visible in Census BFS), declining
+output gets cheaper — the extensive margin visible in Census BFS), a derived
+design-manager layer (~1 seat per 7 designers, span widening toward ~13 with
+AI adoption — org flattening), declining
 AI cost per task (24-month half-life toward an orchestration floor),
 per-category AI capability curves, vacancy-gated promotions,
 market-tightness wage bargaining, and a talent pipeline that responds to

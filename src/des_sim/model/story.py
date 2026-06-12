@@ -198,6 +198,25 @@ def build_payload() -> dict:
     # After the layoffs + price inserts: 8 = total employment, 9 = open question slot.
     views.insert(9, firm_view)
 
+    # Manager scene (view 10): derived manager seats vs the no-AI world.
+    # Span-of-control flattening vs headcount growth — orders cleanly by
+    # elasticity, like everything else that matters in this model.
+    mgr_eps = by("elasticity", "manager_seats_vs_cf")
+    mgr_band = band("manager_seats_vs_cf")
+    mgmt_y = targets.management_postings()
+    mgmt_m = mgmt_y.groupby(mgmt_y["date"].dt.to_period("M"))["postings_index"].mean()
+    mgmt_yoy = round((mgmt_m.iloc[-1] / mgmt_m.iloc[-13] - 1) * 100)
+    design_m = targets.design_postings_index()
+    design_mm = design_m.groupby(design_m["date"].dt.to_period("M"))["postings_index"].mean()
+    design_yoy = round((design_mm.iloc[-1] / design_mm.iloc[-13] - 1) * 100)
+    views.insert(10, dict(
+        **y_ratio, ref=1.0, refLabel="no-AI counterfactual",
+        series=series_eps(mgr_eps), band=mgr_band,
+        ann=ann_ends(mgr_eps, (1.0, 1.5, 2.0)),
+        metric="Design-manager seats, vs a world without AI (band = every run)",
+        fam="mgr",
+    ))
+
     # 8 — measured reality: the elasticity-evidence ratio, if data is pulled
     evidence = None
     try:
@@ -372,6 +391,27 @@ def build_payload() -> dict:
             f"filings are running well above their 2023 pace. You'll see that "
             f"measured line in a moment.</p>")},
         {"view": 10, "html": (
+            f"<h3>And the managers?</h3>"
+            f"<p>The most personally pointed question for many design leaders. "
+            f"The model gives firms one design manager per ~7 designers, and AI "
+            f"adoption widens that span toward ~13 — the org-flattening and "
+            f"pod-structure story in the 2026 layoff reporting. The result "
+            f"splits by appetite like everything else: in the "
+            f"<b style='color:#bf4633'>fixed-appetite world</b>, flattening "
+            f"plus smaller teams cuts manager seats to "
+            f"{mgr_eps[1.0][end]:.2f}x of the no-AI world. In the "
+            f"<b style='color:#2e6f9e'>growing-appetite world</b>, headcount "
+            f"growth outruns the flattening — {mgr_eps[2.0][end]:.2f}x. The "
+            f"compression is real; whether it nets out negative is, again, "
+            f"appetite.</p>"
+            f"<p class='note'><b>Measured, right now:</b> Indeed's Management "
+            f"postings index is {mgmt_yoy:+d}% year-over-year while "
+            f"design-adjacent postings are {design_yoy:+d}% — the squeeze is "
+            f"in the live data, not just projections. Caveat: that series is "
+            f"all management, not design management; no public series breaks "
+            f"that out. In the model, manager seats are derived from team "
+            f"sizes and spans, not simulated as individual careers.</p>")},
+        {"view": 11, "html": (
             "<h3>So which world are we in?</h3>"
             "<p>Honestly: the historical data can't settle it. We tested the "
             "model against three years of job postings and government surveys "

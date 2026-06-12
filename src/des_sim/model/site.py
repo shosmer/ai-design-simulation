@@ -144,7 +144,7 @@ def explore_grid() -> pd.DataFrame:
                 start_anchor=START_ANCHOR, adoption_loc=loc, adoption_scale=scale,
             ).run()
             base = no_ai[seed]
-            for col in ("employed_junior", "employed_total", "senior_premium"):
+            for col in ("employed_junior", "employed_total", "senior_premium", "manager_seats"):
                 df[f"{col}_vs_cf"] = df[col] / base[col]
             df["eps"], df["seed"] = eps, seed
             frames.append(df)
@@ -160,7 +160,8 @@ def page_explore() -> str:
     data = {"eps": EXPLORE_EPS, "metrics": {}}
     for key, col in [("junior", "employed_junior_vs_cf"),
                      ("total", "employed_total_vs_cf"),
-                     ("premium", "senior_premium_vs_cf")]:
+                     ("premium", "senior_premium_vs_cf"),
+                     ("managers", "manager_seats_vs_cf")]:
         med = grid.groupby(["eps", "month"])[col].median().unstack(0)
         data["metrics"][key] = {str(e): [round(v, 4) for v in sm(med[e])] for e in EXPLORE_EPS}
     body = """
@@ -194,7 +195,7 @@ for(const tv of [0.5,1.0,1.5,2.0]){const y=Y(tv,...DOM);
   const t=el('text',{x:M.l-8,y:y+4,'text-anchor':'end',class:'chartlabel'});t.textContent=tv.toFixed(1)+'x';}
 for(let yr=2024;yr<=2035;yr+=2){const x=X((yr-2023)*12+6);
   const t=el('text',{x:x,y:H-M.b+16,'text-anchor':'middle',class:'chartlabel'});t.textContent=yr;}
-const SERIES=[['junior','Junior designers','#2e6f9e'],['total','All designers','#211d18'],['premium','Senior/junior pay gap','#b08a3e']];
+const SERIES=[['junior','Junior designers','#2e6f9e'],['total','All designers','#211d18'],['premium','Senior/junior pay gap','#b08a3e'],['managers','Design managers','#7a5b8e']];
 const paths={},labels={};
 for(const [k,name,c] of SERIES){
   paths[k]=el('path',{fill:'none',stroke:c,'stroke-width':2.6});
@@ -757,6 +758,19 @@ def page_signals() -> str:
              f"{vals[-1]:.0f}k", "ambiguous", MUTED,
              f"~{last12:.0f}k in the trailing year. Peak was Jan 2023 — before design-capable AI. "
              "Counts can't separate AI cuts from everything else.",
+             "window: last 4 years")
+    except FileNotFoundError:
+        pass
+    try:
+        mgmt = targets.management_postings()
+        mm = mgmt.groupby(mgmt["date"].dt.to_period("M"))["postings_index"].mean()
+        mvals = [round(v, 1) for v in mm]
+        myoy = mvals[-1] / mvals[-13] - 1 if len(mvals) > 13 else 0
+        card("Management postings (Indeed, all management)", mvals[-48:], RED,
+             f"{mvals[-1]:.0f}", "compression" if myoy < -0.03 else "neutral",
+             RED if myoy < -0.03 else MUTED,
+             f"Index, Feb 2020 = 100; {myoy:+.0%} y/y. The middle-management squeeze watch — "
+             "all management, not design management specifically.",
              "window: last 4 years")
     except FileNotFoundError:
         pass
