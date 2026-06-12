@@ -51,6 +51,38 @@ NAV = [
 INK, MUTED, PAPER, RULE = "#211d18", "#7a7065", "#faf7f0", "#c9c0b2"
 RED, AMBER, BLUE, GREEN = "#bf4633", "#b08a3e", "#2e6f9e", "#2f7561"
 
+# One mark per data point, used consistently on the data page and the
+# signals panel so a source is recognizable wherever it appears.
+ICONS = {
+    "hiring_lab": "📋",     # job postings
+    "oews": "🏛️",           # government ground truth
+    "layoffs_fyi": "📉",    # layoff events
+    "job_boards": "⚖️",     # PM:design role mix
+    "btos": "🏢",           # firm adoption
+    "aei": "🔭",            # observed AI usage
+    "ai_prices": "💸",      # cost of AI output
+    "design_demand": "🍽️",  # the world's appetite for design
+    "web_quality": "📐",    # quality floor and ceiling
+    "onet_tasks": "🗺️",     # occupation-task mapping
+    "levels_fyi": "💰",     # compensation (stub)
+    # signal-specific marks not tied to one source
+    "formation": "🌱",      # new companies
+    "managers": "👔",       # middle-management watch
+    "individual": "🌍",     # who's using AI globally
+    "rates": "🏦",          # capital conditions
+}
+
+
+def icon_chip(key: str) -> str:
+    glyph = ICONS.get(key, "")
+    if not glyph:
+        return ""
+    return (
+        f'<span style="display:inline-flex;align-items:center;justify-content:center;'
+        f'width:30px;height:30px;border-radius:50%;background:rgba(33,29,24,.06);'
+        f'font-size:16px;margin-right:8px;vertical-align:middle;flex-shrink:0">{glyph}</span>'
+    )
+
 SHELL_CSS = """
   :root { --paper:#faf7f0; --ink:#211d18; --muted:#7a7065; --rule:#c9c0b2; }
   * { box-sizing: border-box; margin: 0; }
@@ -717,10 +749,11 @@ def _sparkline(values: list[float], color: str = INK, w: int = 220, h: int = 44)
 def page_signals() -> str:
     cards = []
 
-    def card(title, spark_vals, color, reading, lean, lean_color, caveat, span):
+    def card(title, spark_vals, color, reading, lean, lean_color, caveat, span, icon=""):
         cards.append(
             f'<div class="panel" style="width:330px">'
-            f'<div style="font-family:-apple-system,sans-serif;font-size:.82rem"><b>{title}</b></div>'
+            f'<div style="font-family:-apple-system,sans-serif;font-size:.82rem;display:flex;align-items:center">'
+            f'{icon_chip(icon)}<b>{title}</b></div>'
             f"{_sparkline(spark_vals, color)}"
             f'<div style="font-family:-apple-system,sans-serif;font-size:.66rem;color:{MUTED}">{span}</div>'
             f'<div style="font-size:1.25rem">{reading} '
@@ -741,7 +774,7 @@ def page_signals() -> str:
              f"{smoothed.iloc[-1]:.2f}",
              "leans blue" if rising else "leans red", BLUE if rising else RED,
              f"2023 = 1.0, 6-mo smoothed; as of {latest['month']}. Rising = world ships more design per designer hired.",
-             "window: last 4 years")
+             "window: last 4 years", icon="design_demand")
     except FileNotFoundError:
         pass
     try:
@@ -754,7 +787,7 @@ def page_signals() -> str:
         card("New tech companies / month (Census BFS)", vals[-48:], "#7a5b8e",
              f"{recent:,.0f}", "leans blue" if up else "neutral", BLUE if up else MUTED,
              f"Trailing year vs 2022-24 plateau: {recent / plateau - 1:+.0%}. Filings, not employer firms.",
-             "window: last 4 years")
+             "window: last 4 years", icon="formation")
     except FileNotFoundError:
         pass
     try:
@@ -765,7 +798,7 @@ def page_signals() -> str:
              f"{vals[-1]:.0f}k", "ambiguous", MUTED,
              f"~{last12:.0f}k in the trailing year. Peak was Jan 2023 — before design-capable AI. "
              "Counts can't separate AI cuts from everything else.",
-             "window: last 4 years")
+             "window: last 4 years", icon="layoffs_fyi")
     except FileNotFoundError:
         pass
     try:
@@ -778,7 +811,7 @@ def page_signals() -> str:
              RED if myoy < -0.03 else MUTED,
              f"Index, Feb 2020 = 100; {myoy:+.0%} y/y. The middle-management squeeze watch — "
              "all management, not design management specifically.",
-             "window: last 4 years")
+             "window: last 4 years", icon="managers")
     except FileNotFoundError:
         pass
     try:
@@ -789,7 +822,7 @@ def page_signals() -> str:
         card("Design-adjacent job postings (Indeed)", vals[-48:], GREEN,
              f"{vals[-1]:.0f}", "leans red" if yoy < -0.03 else "neutral", RED if yoy < -0.03 else MUTED,
              f"Index, Feb 2020 = 100; {yoy:+.0%} y/y. Demand for design *labor*, not design output.",
-             "window: last 4 years")
+             "window: last 4 years", icon="hiring_lab")
     except FileNotFoundError:
         pass
     try:
@@ -798,7 +831,7 @@ def page_signals() -> str:
         card("Firms using AI (Census BTOS)", [round(v, 3) for v in s], BLUE,
              f"{s.iloc[-1]:.0%}", "context", MUTED,
              "National, all sectors; Information sector runs ~2x this. Feeds the adoption curve.",
-             "window: since late 2025 (all available)")
+             "window: since late 2025 (all available)", icon="btos")
     except (FileNotFoundError, ValueError):
         pass
     try:
@@ -815,7 +848,7 @@ def page_signals() -> str:
              "tracker). Panel skews infra-heavy, so the level runs above market-wide estimates "
              "(TrueUp via Lenny, Feb 2026: ~1.27x); watch the direction. If AI compresses "
              "coordination work next, this ratio falls.",
-             f"snapshot {pdr['n_snapshots']} of an accumulating series")
+             f"snapshot {pdr['n_snapshots']} of an accumulating series", icon="job_boards")
     except FileNotFoundError:
         pass
     try:
@@ -827,7 +860,7 @@ def page_signals() -> str:
              f"({', '.join(conc['top5'])}) = {conc['top5_share']:.0f}%. Globally, only ~13% of "
              "humanity actively uses AI at all (~1.1B people, Jan 2026 est.). Firm-level US "
              "adoption is the BTOS card; individual-level US series: none good yet.",
-             "snapshot per AEI release (~quarterly)")
+             "snapshot per AEI release (~quarterly)", icon="individual")
     except FileNotFoundError:
         pass
     try:
@@ -842,7 +875,7 @@ def page_signals() -> str:
              f"Floor {recent['p10'].iloc[-1]:.0f}, ceiling {recent['p90'].iloc[-1]:.0f}. "
              "Compressing gap = good-enough commoditization signature; caveat: ceiling "
              "is censored near scale max, so an arms race wouldn't show here.",
-             "window: last 4 years")
+             "window: last 4 years", icon="web_quality")
     except FileNotFoundError:
         pass
     try:
@@ -852,7 +885,7 @@ def page_signals() -> str:
              f"{fvals[-1]:.2f}%", "regime watch", MUTED,
              "Appetite for design tracks capital conditions (corr −0.5 with design-demand "
              "momentum since 2020). In stress runs, a monetary turn flips which world we're in.",
-             "window: last 4 years")
+             "window: last 4 years", icon="rates")
     except FileNotFoundError:
         pass
     try:
@@ -864,7 +897,7 @@ def page_signals() -> str:
              f"${med:,.2f}", "accumulating", MUTED,
              f"{n_dates} snapshot(s) so far — this series grows with every data refresh. "
              "Token prices at fixed capability fell ~280x in 18 months (Stanford AI Index).",
-             "window: accumulating from June 2026")
+             "window: accumulating from June 2026", icon="ai_prices")
     except FileNotFoundError:
         pass
 
@@ -1042,7 +1075,8 @@ def page_data() -> str:
                 meta += f" &middot; {rows:,} rows"
             cards.append(
                 f'<div class="panel">'
-                f'<div style="font-family:-apple-system,sans-serif;font-size:.95rem"><b>{cls.description if cls else key}</b></div>'
+                f'<div style="font-family:-apple-system,sans-serif;font-size:.95rem;display:flex;align-items:center">'
+                f'{icon_chip(key)}<b>{cls.description if cls else key}</b></div>'
                 f'<div style="font-family:-apple-system,sans-serif;font-size:.72rem;color:{MUTED};margin-bottom:8px">{meta}</div>'
                 f'<p style="font-size:.93rem"><b>Why this source:</b> {info["why"]}</p>'
                 f'<p style="font-size:.85rem;color:{MUTED};margin-top:6px"><b>Watch out:</b> {info["watch"]}</p>'
