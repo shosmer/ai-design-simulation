@@ -179,7 +179,13 @@ elasticity (base capability scenario), measured against paired no-AI worlds —
 readouts carry a &approx; because three seeds leave a few points of noise.
 The historical record (2023–26) cannot tell us where this slider truly sits —
 that's the model's central honesty. Drag it and notice which futures you can
-and can't reach: the speed of AI never appears on this page.</p>"""
+and can't reach: the speed of AI never appears on this page.
+One more thing the slider hides: <b>it may not stay where you put it</b>.
+Appetite tracks capital conditions — design-demand momentum has correlated
+−0.5 with the fed funds rate since 2020 — and in stress runs, a mid-2028
+monetary tightening drags a world that <i>started</i> at elasticity 2.0 down
+to the red world's outcomes by 2035 (junior 0.70x). The Fed can move this
+slider; AI capability can't.</p>"""
     script = """
 const D = __DATA__;
 const W=900,H=380,M={l:50,t:20,r:110,b:34};
@@ -793,6 +799,16 @@ def page_signals() -> str:
              "National, all sectors; Information sector runs ~2x this. Feeds the adoption curve.",
              "window: since late 2025 (all available)")
     except (FileNotFoundError, ValueError):
+        pass
+    try:
+        ff = targets.fed_funds_rate()
+        fvals = [round(v, 2) for v in ff["value"]]
+        card("Fed funds rate (capital conditions)", fvals[-48:], MUTED,
+             f"{fvals[-1]:.2f}%", "regime watch", MUTED,
+             "Appetite for design tracks capital conditions (corr −0.5 with design-demand "
+             "momentum since 2020). In stress runs, a monetary turn flips which world we're in.",
+             "window: last 4 years")
+    except FileNotFoundError:
         pass
     try:
         snaps = pd.read_parquet("data/processed/ai_prices_snapshots.parquet")

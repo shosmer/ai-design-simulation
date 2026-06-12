@@ -258,6 +258,19 @@ def management_postings() -> pd.DataFrame:
     )
 
 
+def fed_funds_rate() -> pd.DataFrame:
+    """Effective federal funds rate (monthly) — the capital-conditions watch.
+
+    Hypothesis under study: demand elasticity for design is regime-dependent
+    (easy money -> elastic, tight money -> inelastic), making "which world are
+    we in" a moving target rather than a fixed unknown.
+    """
+    df = _read("design_demand_macro.parquet")
+    out = df[df["series"] == "fed_funds_rate"].copy()
+    out["date"] = pd.to_datetime(out["date"])
+    return out.sort_values("date")[["date", "value"]]
+
+
 def tech_layoffs_monthly() -> pd.DataFrame:
     """Monthly tech layoffs (layoffs.fyi events, summed headcounts).
 

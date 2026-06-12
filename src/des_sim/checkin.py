@@ -69,6 +69,13 @@ def gather() -> dict:
     except (FileNotFoundError, ValueError):
         r["btos_adoption"] = "n/a"
 
+    try:
+        ff = targets.fed_funds_rate()
+        r["fed_funds"] = f"{ff['value'].iloc[-1]:.2f}%"
+        r["fed_funds_yr_ago"] = f"{ff['value'].iloc[-13]:.2f}%" if len(ff) > 13 else "n/a"
+    except FileNotFoundError:
+        r["fed_funds"] = "n/a"
+
     oews = targets.oews_anchors().set_index("OCC_CODE")
     for soc, key in [("15-1255", "oews_designers"), ("11-3021", "oews_it_managers")]:
         if soc in oews.index:
@@ -126,6 +133,10 @@ def render(r: dict, prev: dict | None) -> str:
         "",
         "### Context",
         f"- Firms using AI (BTOS, national): {r['btos_adoption']}{delta('btos_adoption')}",
+        f"- **Fed funds rate (regime watch)**: {r.get('fed_funds', 'n/a')} "
+        f"(year ago: {r.get('fed_funds_yr_ago', 'n/a')}){delta('fed_funds')} — "
+        "appetite for design tracks capital conditions; a tightening turn is "
+        "red-world pressure regardless of AI news",
     ]
     if "oews_designers" in r:
         lines.append(f"- Web/digital interface designers (OEWS): {r['oews_designers']}")

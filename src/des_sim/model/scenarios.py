@@ -189,6 +189,74 @@ def robustness_summary(df: pd.DataFrame) -> dict:
     return summary
 
 
+AUX_SEEDS = [0, 1]
+
+
+def run_aux() -> dict:
+    """Auxiliary stress runs, kept OUT of the main 27-run grid:
+
+    - cost_plateau / cost_subsidy_end: the measured AI price collapse may be
+      partly capex-subsidized; these break the decline at mid-2027 (stop, or
+      ~3x repricing over a year).
+    - regime_tighten / regime_easing: elasticity as a capital-conditions
+      regime rather than a constant (ε ramps 2.0->1.0 or 1.0->2.0 over
+      anchor months 18-30 — a mid-2028 monetary turn).
+
+    Saves results/aux_scenarios.csv and returns end-state medians vs the
+    matched aux_base runs.
+    """
+    loc, scale, _ = calibrate_adoption()
+    no_ai = {
+        seed: Simulation(elasticity=1.5, months=MONTHS, seed=seed,
+                         start_anchor=START_ANCHOR, adoption_loc=loc,
+                         adoption_scale=scale, ai_scale=0.0).run()
+        for seed in AUX_SEEDS
+    }
+
+    def ramp(start_eps, end_eps):
+        # constant until anchor +18 (month 60), ramp to anchor +30 (month 72)
+        path = []
+        for t in range(MONTHS):
+            anchor = t + START_ANCHOR
+            f = min(max((anchor - 18) / 12, 0), 1)
+            path.append(start_eps + (end_eps - start_eps) * f)
+        return path
+
+    variants = {
+        "aux_base": [dict(elasticity=e) for e in (1.0, 1.5, 2.0)],
+        "cost_plateau": [dict(elasticity=e, ai_cost_scenario="plateau") for e in (1.0, 1.5, 2.0)],
+        "cost_subsidy_end": [dict(elasticity=e, ai_cost_scenario="subsidy_end") for e in (1.0, 1.5, 2.0)],
+        "regime_tighten": [dict(elasticity=2.0, elasticity_series=ramp(2.0, 1.0))],
+        "regime_easing": [dict(elasticity=1.0, elasticity_series=ramp(1.0, 2.0))],
+    }
+    frames = []
+    for name, runs in variants.items():
+        for kw in runs:
+            for seed in AUX_SEEDS:
+                df = Simulation(months=MONTHS, seed=seed, start_anchor=START_ANCHOR,
+                                adoption_loc=loc, adoption_scale=scale, **kw).run()
+                base = no_ai[seed]
+                for col in ("employed_junior", "employed_total"):
+                    df[f"{col}_vs_cf"] = df[col] / base[col]
+                df["variant"] = name
+                df["seed"] = seed
+                frames.append(df)
+            print(f"  aux: {name} eps={kw.get('elasticity')}")
+    aux = pd.concat(frames, ignore_index=True)
+    aux.to_csv(RESULTS / "aux_scenarios.csv", index=False)
+
+    end = aux[aux["month"] == MONTHS - 1]
+    summary = {
+        v: {
+            "junior_end": round(float(g["employed_junior_vs_cf"].median()), 2),
+            "total_end": round(float(g["employed_total_vs_cf"].median()), 2),
+        }
+        for v, g in end.groupby("variant")
+    }
+    (RESULTS / "aux_summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+    return summary
+
+
 def main() -> int:
     RESULTS.mkdir(exist_ok=True)
     print("Running scenario grid (3 scenarios x 3 elasticities x 3 seeds + counterfactuals)...")
@@ -212,6 +280,11 @@ def main() -> int:
     for name, g in per.groupby("scenario"):
         dates = pd.to_datetime(g["junior_trough_date"])
         print(f"  {name:<5} {dates.quantile(0.5, interpolation='nearest').date()}  (trough ratio median {g['junior_trough_ratio'].median():.2f})")
+
+    print("\nAuxiliary stress runs (cost paths, capital regimes)...")
+    aux = run_aux()
+    for v, s in aux.items():
+        print(f"  {v:<18} junior {s['junior_end']}x, total {s['total_end']}x (2035 vs no-AI)")
     return 0
 
 

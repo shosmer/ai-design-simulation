@@ -198,7 +198,16 @@ class Simulation:
         adoption_loc: float = 6.0,
         adoption_scale: float = 10.0,
         track_agents: int = 0,  # snapshot agent states every N months (0 = off)
+        elasticity_series: list[float] | None = None,  # per-month ε path
+        ai_cost_scenario: str = "base",  # base | plateau | subsidy_end
     ) -> None:
+        # Capital-conditions regime support: demand elasticity may not be a
+        # constant (easy money -> elastic, tight money -> inelastic; the
+        # design-vs-aggregate postings ratio's momentum correlates -0.5 with
+        # the fed funds level, 2020-2026). A per-month path makes regime
+        # shifts simulable.
+        self.elasticity_series = elasticity_series
+        self.ai_cost_scenario = ai_cost_scenario
         self.track_agents = track_agents
         self.agent_log: list[str] = []  # one state-string per snapshot
         self.elasticity = elasticity
@@ -280,11 +289,26 @@ class Simulation:
     def _capability(self, cat: TaskCategory, t: float) -> float:
         return self.ai_scale * cat.capability(t + self.start_anchor - self.capability_shift)
 
+    def _eps(self, t: float) -> float:
+        if self.elasticity_series is not None:
+            return self.elasticity_series[min(int(t), len(self.elasticity_series) - 1)]
+        return self.elasticity
+
     def _ai_cost(self, t: float) -> float:
         anchor = t + self.start_anchor  # cost decline follows the calendar
         factor = AI_COST_FLOOR_FACTOR + (AI_COST_FACTOR - AI_COST_FLOOR_FACTOR) * (
             0.5 ** (anchor / AI_COST_HALF_LIFE)
         )
+        # The measured price collapse may be partly capex-subsidized pricing.
+        # Alternative paths, breaking at anchor +12 (mid-2027):
+        if anchor > 12 and self.ai_cost_scenario != "base":
+            at_break = AI_COST_FLOOR_FACTOR + (AI_COST_FACTOR - AI_COST_FLOOR_FACTOR) * (
+                0.5 ** (12 / AI_COST_HALF_LIFE)
+            )
+            if self.ai_cost_scenario == "plateau":  # decline simply stops
+                factor = at_break
+            elif self.ai_cost_scenario == "subsidy_end":  # vendors reprice ~3x over a year
+                factor = at_break * (1 + 2 * min((anchor - 12) / 12, 1.0))
         return min(factor, 1.0) * self._human_cost_init
 
     def _human_cost(self, mix: np.ndarray) -> float:
@@ -309,7 +333,7 @@ class Simulation:
         adoption = firm.adoption(t + self.start_anchor)
         mix = self._employment_mix() if self.firms else self.level_mix
         p = self._unit_cost(adoption, t, mix)
-        demand = firm.base_demand * firm.demand_mult * (p / self.p0) ** (-self.elasticity)
+        demand = firm.base_demand * firm.demand_mult * (p / self.p0) ** (-self._eps(t))
         junior_work = mid_work = senior_work = 0.0
         for c in self.categories:
             human = demand * c.workload_share * (1 - self._capability(c, t) * adoption)

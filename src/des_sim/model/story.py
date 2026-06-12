@@ -261,6 +261,17 @@ def build_payload() -> dict:
     except FileNotFoundError:
         pass
 
+    # Auxiliary stress-run numbers for the price-scene note, if available.
+    subsidy_bit = ""
+    aux_path = RESULTS / "aux_summary.json"
+    if aux_path.exists():
+        aux = json.loads(aux_path.read_text())
+        if "aux_base" in aux and "cost_subsidy_end" in aux:
+            subsidy_bit = (
+                f" (junior outcome {aux['aux_base']['junior_end']}x &rarr; "
+                f"{aux['cost_subsidy_end']['junior_end']}x)"
+            )
+
     jr_lo, jr_hi = jr_eps[1.0][end], jr_eps[2.0][end]
     tot_lo, tot_hi = tot_eps[1.0][end], tot_eps[2.0][end]
     pr_lo, pr_hi = prem_eps[2.0][end], prem_eps[1.0][end]
@@ -333,8 +344,11 @@ def build_payload() -> dict:
             f"<p class='note'><b>Careful with that 280x:</b> tokens are not "
             f"finished design. The real cost of AI design work includes the "
             f"human time to direct and review it, which falls far more slowly. "
-            f"Read direction and slope, not arithmetic. Sources: Stanford AI "
-            f"Index 2025; Employment Cost Index.</p>")},
+            f"And part of the collapse may be <i>capex-subsidized pricing</i> — "
+            f"if vendors repriced ~3x in 2027, stress runs give back roughly a "
+            f"third of the elastic world's 2035 gains{subsidy_bit}. The decline "
+            f"is measured; its permanence is an assumption. Sources: Stanford "
+            f"AI Index 2025; Employment Cost Index.</p>")},
         {"view": 5, "html": (
             f"<h3>The variable that matters: appetite</h3>"
             f"<p>These are the <b>exact same 27 runs</b>, regrouped by a "

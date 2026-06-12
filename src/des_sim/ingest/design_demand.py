@@ -35,6 +35,12 @@ BFS_SERIES = {
     "BABANAICS54SAUS": "professional_services_applications",
     "BAHBATOTALSAUS": "high_propensity_applications_total",
 }
+# Capital conditions: appetite for design is partly appetite for funding
+# speculative product work, which moves with rates. Used to study whether
+# demand elasticity is regime-dependent rather than constant.
+MACRO_SERIES = {
+    "FEDFUNDS": "fed_funds_rate",
+}
 FRED_URL = "https://fred.stlouisfed.org/graph/fredgraph.csv?id={sid}"
 APPBRAIN_URL = "https://www.appbrain.com/stats/number-of-android-apps"
 
@@ -46,7 +52,7 @@ class DesignDemand(Source):
 
     def fetch(self) -> list[Path]:
         files = []
-        for sid in list(FRED_SERIES) + list(BFS_SERIES):
+        for sid in list(FRED_SERIES) + list(BFS_SERIES) + list(MACRO_SERIES):
             files.append(download(FRED_URL.format(sid=sid), self.raw_dir / f"{sid}.csv"))
         files.append(
             download(
@@ -60,10 +66,10 @@ class DesignDemand(Source):
     def transform(self, raw_files: list[Path]) -> dict[str, pd.DataFrame]:
         frames: dict[str, pd.DataFrame] = {}
 
-        revenue, formation = [], []
+        revenue, formation, macro = [], [], []
         for path in raw_files:
             sid = path.stem
-            if sid not in FRED_SERIES and sid not in BFS_SERIES:
+            if sid not in FRED_SERIES and sid not in BFS_SERIES and sid not in MACRO_SERIES:
                 continue
             df = pd.read_csv(path)
             df.columns = ["date", "value"]
@@ -72,11 +78,15 @@ class DesignDemand(Source):
             if sid in FRED_SERIES:
                 df["series"] = FRED_SERIES[sid]
                 revenue.append(df.dropna())
-            else:
+            elif sid in BFS_SERIES:
                 df["series"] = BFS_SERIES[sid]
                 formation.append(df.dropna())
+            else:
+                df["series"] = MACRO_SERIES[sid]
+                macro.append(df.dropna())
         frames["revenue"] = pd.concat(revenue, ignore_index=True)
         frames["business_formation"] = pd.concat(formation, ignore_index=True)
+        frames["macro"] = pd.concat(macro, ignore_index=True)
 
         html = (self.raw_dir / "appbrain.html").read_text(errors="ignore")
         frames["app_releases"] = self._parse_appbrain(html)

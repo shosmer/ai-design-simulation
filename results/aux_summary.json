@@ -1,0 +1,22 @@
+{
+  "aux_base": {
+    "junior_end": 1.08,
+    "total_end": 1.49
+  },
+  "cost_plateau": {
+    "junior_end": 0.97,
+    "total_end": 1.33
+  },
+  "cost_subsidy_end": {
+    "junior_end": 0.86,
+    "total_end": 1.18
+  },
+  "regime_easing": {
+    "junior_end": 1.23,
+    "total_end": 1.69
+  },
+  "regime_tighten": {
+    "junior_end": 0.7,
+    "total_end": 0.96
+  }
+}

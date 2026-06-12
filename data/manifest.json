@@ -113,24 +113,27 @@
   },
   "design_demand": {
     "source": "design_demand",
-    "fetched_at": "2026-06-11T21:47:17",
+    "fetched_at": "2026-06-12T09:23:49",
     "raw_files": [
-      "data/raw/design_demand/2026-06-11/REVEF54143ALLEST.csv",
-      "data/raw/design_demand/2026-06-11/REVEF54141ALLEST.csv",
-      "data/raw/design_demand/2026-06-11/REVEF5415ALLEST.csv",
-      "data/raw/design_demand/2026-06-11/BABANAICS51SAUS.csv",
-      "data/raw/design_demand/2026-06-11/BABANAICS54SAUS.csv",
-      "data/raw/design_demand/2026-06-11/BAHBATOTALSAUS.csv",
-      "data/raw/design_demand/2026-06-11/appbrain.html"
+      "data/raw/design_demand/2026-06-12/REVEF54143ALLEST.csv",
+      "data/raw/design_demand/2026-06-12/REVEF54141ALLEST.csv",
+      "data/raw/design_demand/2026-06-12/REVEF5415ALLEST.csv",
+      "data/raw/design_demand/2026-06-12/BABANAICS51SAUS.csv",
+      "data/raw/design_demand/2026-06-12/BABANAICS54SAUS.csv",
+      "data/raw/design_demand/2026-06-12/BAHBATOTALSAUS.csv",
+      "data/raw/design_demand/2026-06-12/FEDFUNDS.csv",
+      "data/raw/design_demand/2026-06-12/appbrain.html"
     ],
     "processed_files": [
       "data/processed/design_demand_revenue.parquet",
       "data/processed/design_demand_business_formation.parquet",
+      "data/processed/design_demand_macro.parquet",
       "data/processed/design_demand_app_releases.parquet"
     ],
     "rows": {
       "revenue": 75,
       "business_formation": 789,
+      "macro": 863,
       "app_releases": 60
     },
     "notes": ""
