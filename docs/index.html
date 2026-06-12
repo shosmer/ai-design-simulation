@@ -72,9 +72,55 @@
     .steps { padding-top: 6vh; }
     .step { min-height: 64vh; }
   }
+
+  :root { --paper:#faf7f0; --ink:#211d18; --muted:#7a7065; --rule:#c9c0b2; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--paper); color: var(--ink);
+         font-family: Georgia, 'Times New Roman', serif; line-height: 1.55; }
+  nav.sitenav { position: fixed; top: 0; left: 0; bottom: 0; width: 230px;
+    border-right: 1px solid var(--rule); padding: 28px 18px; overflow-y: auto;
+    background: var(--paper); z-index: 50;
+    font-family: -apple-system, 'Helvetica Neue', sans-serif; }
+  nav.sitenav .brand { font-family: Georgia, serif; font-size: 1.05rem;
+    line-height: 1.25; margin-bottom: 4px; }
+  nav.sitenav .sub { font-size: .7rem; color: var(--muted); letter-spacing: .08em;
+    text-transform: uppercase; margin-bottom: 22px; }
+  nav.sitenav a { display: block; text-decoration: none; color: var(--ink);
+    padding: 9px 10px; border-radius: 5px; margin-bottom: 2px; }
+  nav.sitenav a .t { font-size: .85rem; font-weight: 600; }
+  nav.sitenav a .d { font-size: .72rem; color: var(--muted); }
+  nav.sitenav a:hover { background: rgba(33,29,24,.05); }
+  nav.sitenav a.active { background: rgba(33,29,24,.08); }
+  main.unused_page { margin-left: 230px; padding: 48px 56px; max-width: 1040px; }
+  main.unused_page h1 { font-size: 2rem; line-height: 1.15; margin-bottom: .5rem; }
+  main.unused_page .dek { color: var(--muted); font-style: italic; margin-bottom: 2rem;
+    max-width: 640px; }
+  .note { font-family: -apple-system, sans-serif; font-size: .82rem;
+    color: var(--muted); line-height: 1.5; max-width: 680px;
+    border-top: 1px solid var(--rule); padding-top: .8rem; margin-top: 1.4rem; }
+  .panel { background: #fff; border: 1px solid var(--rule); border-radius: 8px;
+    padding: 20px; margin: 14px 0; }
+  .chartlabel { font-family: -apple-system, sans-serif; font-size: 12px;
+    fill: var(--muted); }
+  button.ctl { font-family: -apple-system, sans-serif; font-size: .82rem;
+    background: #fff; border: 1px solid var(--rule); border-radius: 5px;
+    padding: 6px 14px; cursor: pointer; }
+  button.ctl.on { background: var(--ink); color: var(--paper);
+    border-color: var(--ink); }
+  @media (max-width: 880px) {
+    nav.sitenav { position: static; width: auto; display: flex; gap: 6px;
+      overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--rule);
+      padding: 12px; }
+    nav.sitenav .brand, nav.sitenav .sub, nav.sitenav a .d { display: none; }
+    nav.sitenav a { white-space: nowrap; }
+    main.unused_page { margin-left: 0; padding: 24px 18px; }
+  }
+
+  header, .hint, .scrolly, footer { margin-left: 230px; }
+  @media (max-width: 880px) { header, .hint, .scrolly, footer { margin-left: 0; } }
 </style>
 </head>
-<body>
+<body><nav class="sitenav"><div class="brand">Same AI.<br>Opposite outcomes.</div><div class="sub">a working model</div><a href="index.html" class="active"><span class="t">The story</span><br><span class="d">scrollytelling, start here</span></a><a href="explore.html" class=""><span class="t">Build your own 2035</span><br><span class="d">drag the one variable that matters</span></a><a href="dots.html" class=""><span class="t">Designers as dots</span><br><span class="d">4,000 simulated careers, two worlds</span></a><a href="flows.html" class=""><span class="t">Where the work goes</span><br><span class="d">task flows: people vs AI</span></a><a href="futures.html" class=""><span class="t">27 futures</span><br><span class="d">one possible world at a time</span></a><a href="categories.html" class=""><span class="t">Five kinds of design work</span><br><span class="d">what automates first</span></a><a href="signals.html" class=""><span class="t">Which world are we in?</span><br><span class="d">live measured signals</span></a></nav>
 <header>
   <h1>Same AI.<br>Opposite outcomes.</h1>
   <p class="dek">27 simulated futures for designers in tech — and the one variable that decides between them.</p>

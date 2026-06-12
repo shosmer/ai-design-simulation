@@ -159,6 +159,7 @@ class Designer:
     employer: int | None
     months_at_level: int = 0
     months_unemployed: int = 0
+    exited: bool = False  # left the profession (or retired)
 
 
 @dataclass(eq=False)
@@ -189,7 +190,10 @@ class Simulation:
         ai_scale: float = 1.0,
         adoption_loc: float = 6.0,
         adoption_scale: float = 10.0,
+        track_agents: int = 0,  # snapshot agent states every N months (0 = off)
     ) -> None:
+        self.track_agents = track_agents
+        self.agent_log: list[str] = []  # one state-string per snapshot
         self.elasticity = elasticity
         self.months = months
         self.start_anchor = start_anchor
@@ -224,6 +228,7 @@ class Simulation:
 
         self.firms: list[Firm] = []
         self.designers: list[Designer] = []
+        self.all_agents: list[Designer] = []  # everyone ever created, in order
         for i in range(n_firms):
             firm = Firm(base_demand=total_demand * sizes[i], adoption_start=float(starts[i]))
             desired = self._desired_headcount(firm, t=0)
@@ -236,6 +241,7 @@ class Simulation:
                     )
                     firm.roster[level].append(d)
                     self.designers.append(d)
+                    self.all_agents.append(d)
             self.firms.append(firm)
 
         # Start the unemployed pool at the natural rate so the first years
@@ -253,6 +259,7 @@ class Simulation:
                     months_unemployed=int(self.rng.integers(0, 10)),
                 )
                 self.designers.append(d)
+                self.all_agents.append(d)
                 self.unemployed[level].append(d)
         self.junior_hire_history: list[int] = []
         # Grad inflow sized near steady-state outflow (retirements + a churn
@@ -334,6 +341,7 @@ class Simulation:
         for _ in range(grads):
             d = Designer(level=JUNIOR, employer=None)
             self.designers.append(d)
+            self.all_agents.append(d)
             self.unemployed[JUNIOR].append(d)
 
         # Idiosyncratic firm demand shocks (mean-reverting in logs).
@@ -423,6 +431,7 @@ class Simulation:
             for d in retiring:
                 firm.roster[SENIOR].remove(d)
                 self.designers.remove(d)
+                d.exited = True
 
         for level in (JUNIOR, MID, SENIOR):
             stayers = []
@@ -430,6 +439,7 @@ class Simulation:
                 d.months_unemployed += 1
                 if d.months_unemployed >= 12 and self.rng.random() < EXIT_PROB_LONG_UNEMPLOYED:
                     self.designers.remove(d)
+                    d.exited = True
                     exits += 1
                 else:
                     stayers.append(d)
@@ -454,6 +464,16 @@ class Simulation:
             self.wages[level] *= 1 + growth
 
         self.junior_hire_history.append(junior_hires)
+
+        # Agent-state snapshot for unit visualizations:
+        # 1/2/3 = employed jr/mid/sr, 4 = unemployed, 5 = exited.
+        if self.track_agents and t % self.track_agents == 0:
+            self.agent_log.append(
+                "".join(
+                    "5" if d.exited else ("4" if d.employer is None else str(d.level + 1))
+                    for d in self.all_agents
+                )
+            )
 
         employed = [sum(len(f.roster[lv]) for f in self.firms) for lv in range(3)]
         mean_adoption = float(

@@ -727,14 +727,18 @@ setView(q !== null ? +q : 0);
 """
 
 
+def render() -> str:
+    """Full story page HTML (used by main() and by the site builder)."""
+    return TEMPLATE.replace("__PAYLOAD__", json.dumps(build_payload()))
+
+
 def main() -> int:
-    payload = build_payload()
-    html = TEMPLATE.replace("__PAYLOAD__", json.dumps(payload))
+    html = render()
     # docs/index.html is the GitHub Pages copy; writeup/story/ is canonical.
     for out in (OUT, Path("docs/index.html")):
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(html)
-        print(f"Wrote {out} ({out.stat().st_size / 1024:.0f} KB, {len(payload['views'])} scenes)")
+        print(f"Wrote {out} ({out.stat().st_size / 1024:.0f} KB)")
     return 0
 
 

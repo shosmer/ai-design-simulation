@@ -23,6 +23,7 @@ des-sim-run = "des_sim.model.experiment:main"
 des-sim-backcast = "des_sim.model.backcast:main"
 des-sim-scenarios = "des_sim.model.scenarios:main"
 des-sim-story = "des_sim.model.story:main"
+des-sim-site = "des_sim.model.site:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/des_sim"]

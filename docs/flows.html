@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where the work goes</title><style>
+  :root { --paper:#faf7f0; --ink:#211d18; --muted:#7a7065; --rule:#c9c0b2; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--paper); color: var(--ink);
+         font-family: Georgia, 'Times New Roman', serif; line-height: 1.55; }
+  nav.sitenav { position: fixed; top: 0; left: 0; bottom: 0; width: 230px;
+    border-right: 1px solid var(--rule); padding: 28px 18px; overflow-y: auto;
+    background: var(--paper); z-index: 50;
+    font-family: -apple-system, 'Helvetica Neue', sans-serif; }
+  nav.sitenav .brand { font-family: Georgia, serif; font-size: 1.05rem;
+    line-height: 1.25; margin-bottom: 4px; }
+  nav.sitenav .sub { font-size: .7rem; color: var(--muted); letter-spacing: .08em;
+    text-transform: uppercase; margin-bottom: 22px; }
+  nav.sitenav a { display: block; text-decoration: none; color: var(--ink);
+    padding: 9px 10px; border-radius: 5px; margin-bottom: 2px; }
+  nav.sitenav a .t { font-size: .85rem; font-weight: 600; }
+  nav.sitenav a .d { font-size: .72rem; color: var(--muted); }
+  nav.sitenav a:hover { background: rgba(33,29,24,.05); }
+  nav.sitenav a.active { background: rgba(33,29,24,.08); }
+  main.page { margin-left: 230px; padding: 48px 56px; max-width: 1040px; }
+  main.page h1 { font-size: 2rem; line-height: 1.15; margin-bottom: .5rem; }
+  main.page .dek { color: var(--muted); font-style: italic; margin-bottom: 2rem;
+    max-width: 640px; }
+  .note { font-family: -apple-system, sans-serif; font-size: .82rem;
+    color: var(--muted); line-height: 1.5; max-width: 680px;
+    border-top: 1px solid var(--rule); padding-top: .8rem; margin-top: 1.4rem; }
+  .panel { background: #fff; border: 1px solid var(--rule); border-radius: 8px;
+    padding: 20px; margin: 14px 0; }
+  .chartlabel { font-family: -apple-system, sans-serif; font-size: 12px;
+    fill: var(--muted); }
+  button.ctl { font-family: -apple-system, sans-serif; font-size: .82rem;
+    background: #fff; border: 1px solid var(--rule); border-radius: 5px;
+    padding: 6px 14px; cursor: pointer; }
+  button.ctl.on { background: var(--ink); color: var(--paper);
+    border-color: var(--ink); }
+  @media (max-width: 880px) {
+    nav.sitenav { position: static; width: auto; display: flex; gap: 6px;
+      overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--rule);
+      padding: 12px; }
+    nav.sitenav .brand, nav.sitenav .sub, nav.sitenav a .d { display: none; }
+    nav.sitenav a { white-space: nowrap; }
+    main.page { margin-left: 0; padding: 24px 18px; }
+  }
+</style></head>
+<body><nav class="sitenav"><div class="brand">Same AI.<br>Opposite outcomes.</div><div class="sub">a working model</div><a href="index.html" class=""><span class="t">The story</span><br><span class="d">scrollytelling, start here</span></a><a href="explore.html" class=""><span class="t">Build your own 2035</span><br><span class="d">drag the one variable that matters</span></a><a href="dots.html" class=""><span class="t">Designers as dots</span><br><span class="d">4,000 simulated careers, two worlds</span></a><a href="flows.html" class="active"><span class="t">Where the work goes</span><br><span class="d">task flows: people vs AI</span></a><a href="futures.html" class=""><span class="t">27 futures</span><br><span class="d">one possible world at a time</span></a><a href="categories.html" class=""><span class="t">Five kinds of design work</span><br><span class="d">what automates first</span></a><a href="signals.html" class=""><span class="t">Which world are we in?</span><br><span class="d">live measured signals</span></a></nav>
+<main class="page"><h1>Where the work goes</h1><p class="dek">Design work, flowing from what it is to who does it — the model's core arithmetic, made visible.</p>
+
+<div style="margin-bottom:10px" id="yearbtns">
+  <button class="ctl on" data-y="2026">2026</button>
+  <button class="ctl" data-y="2030">2030</button>
+  <button class="ctl" data-y="2035">2035</button>
+</div>
+<div class="panel"><svg id="sankey" viewBox="0 0 900 480" style="width:100%"></svg></div>
+<p class="note">Shares of design work demanded, flowing from the five kinds of
+design work (left) to who performs them (right), using the model's task
+arithmetic: AEI-anchored capability per category &times; the BTOS-calibrated
+adoption curve. Widths are shares of total design work — in elastic worlds the
+total itself grows, so a shrinking human <i>share</i> can still be growing
+human <i>work</i>. Design-to-code automates first; strategy barely moves.</p></main>
+<script>
+const D={"years": {"2026": [{"cat": "production", "ai": 0.0013, "junior": 0.1792, "mid": 0.0657, "senior": 0.0538}, {"cat": "wireframing ideation", "ai": 0.0003, "junior": 0.0524, "mid": 0.0535, "senior": 0.0438}, {"cat": "prototyping design to code", "ai": 0.0079, "junior": 0.0576, "mid": 0.074, "senior": 0.0605}, {"cat": "research synthesis", "ai": 0.0002, "junior": 0.0375, "mid": 0.0618, "senior": 0.0506}, {"cat": "strategy judgment", "ai": 0.0008, "junior": 0.01, "mid": 0.1041, "senior": 0.0852}], "2030": [{"cat": "production", "ai": 0.2221, "junior": 0.0467, "mid": 0.0171, "senior": 0.014}, {"cat": "wireframing ideation", "ai": 0.0731, "junior": 0.0269, "mid": 0.0275, "senior": 0.0225}, {"cat": "prototyping design to code", "ai": 0.134, "junior": 0.0198, "mid": 0.0254, "senior": 0.0208}, {"cat": "research synthesis", "ai": 0.0386, "junior": 0.0278, "mid": 0.0459, "senior": 0.0376}, {"cat": "strategy judgment", "ai": 0.0333, "junior": 0.0083, "mid": 0.0871, "senior": 0.0713}], "2035": [{"cat": "production", "ai": 0.2544, "junior": 0.0274, "mid": 0.01, "senior": 0.0082}, {"cat": "wireframing ideation", "ai": 0.1047, "junior": 0.0158, "mid": 0.0162, "senior": 0.0132}, {"cat": "prototyping design to code", "ai": 0.1497, "junior": 0.0151, "mid": 0.0194, "senior": 0.0159}, {"cat": "research synthesis", "ai": 0.0895, "junior": 0.0151, "mid": 0.0249, "senior": 0.0204}, {"cat": "strategy judgment", "ai": 0.0497, "junior": 0.0075, "mid": 0.0785, "senior": 0.0642}]}};
+const W=900,H=480,LX=150,RX=W-170,NW=10;
+const svg=document.getElementById('sankey');
+const NS='http://www.w3.org/2000/svg';
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e;}
+const TCOL={junior:'#8fb8d9',mid:'#4a86b4',senior:'#1d5380',ai:'#bf4633'};
+const TNAME={junior:'junior designers',mid:'mid-level',senior:'senior',ai:'AI'};
+function layout(flows){
+  const total=flows.reduce((s,f)=>s+f.ai+f.junior+f.mid+f.senior,0);
+  const SC=(H-80)/total, GAP=14;
+  let y=30; const left={};
+  for(const f of flows){const h=(f.ai+f.junior+f.mid+f.senior)*SC;left[f.cat]={y,h};y+=h+GAP;}
+  const tt={junior:0,mid:0,senior:0,ai:0};
+  for(const f of flows)for(const k in tt)tt[k]+=f[k];
+  let y2=30; const right={};
+  for(const k of ['junior','mid','senior','ai']){const h=tt[k]*SC;right[k]={y:y2,h};y2+=h+GAP;}
+  return {left,right,SC};
+}
+function render(year){
+  svg.innerHTML='';
+  const flows=D.years[year];
+  const {left,right,SC}=layout(flows);
+  const rOff={junior:0,mid:0,senior:0,ai:0};
+  for(const f of flows){
+    let lOff=0;
+    for(const k of ['ai','junior','mid','senior']){
+      const v=f[k]; if(v<=0.0005)continue;
+      const h=v*SC, y1=left[f.cat].y+lOff, y2=right[k].y+rOff[k];
+      const mx=(LX+RX)/2;
+      el('path',{d:`M${LX+NW},${y1} C${mx},${y1} ${mx},${y2} ${RX},${y2} L${RX},${y2+h} C${mx},${y2+h} ${mx},${y1+h} ${LX+NW},${y1+h} Z`,
+        fill:TCOL[k],opacity:0.45});
+      lOff+=h; rOff[k]+=h;
+    }
+  }
+  for(const f of flows){const n=left[f.cat];
+    el('rect',{x:LX,y:n.y,width:NW,height:n.h,fill:'#211d18'});
+    const t=el('text',{x:LX-8,y:n.y+n.h/2+4,'text-anchor':'end',class:'chartlabel',fill:'#211d18'});
+    t.textContent=f.cat;}
+  for(const k of ['junior','mid','senior','ai']){const n=right[k];
+    if(n.h<1)continue;
+    el('rect',{x:RX,y:n.y,width:NW,height:n.h,fill:TCOL[k]});
+    const t=el('text',{x:RX+NW+8,y:n.y+n.h/2+4,class:'chartlabel',fill:'#211d18'});
+    t.textContent=TNAME[k]+' '+Math.round(n.h/SC*100)+'%';}
+}
+document.getElementById('yearbtns').addEventListener('click',e=>{
+  if(!e.target.dataset.y)return;
+  document.querySelectorAll('#yearbtns .ctl').forEach(b=>b.classList.remove('on'));
+  e.target.classList.add('on');render(e.target.dataset.y);});
+render('2026');</script></body></html>
