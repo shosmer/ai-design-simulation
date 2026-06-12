@@ -115,6 +115,27 @@ def build_payload() -> dict:
              metric="Junior designers employed — the open question"),
     ]
 
+    # Extensive-margin scene: firm count vs the no-AI world. Entry doesn't
+    # order cleanly by elasticity (wage feedback in elastic worlds damps it),
+    # so show the all-runs median + band: more companies in every world.
+    firms_med = _smooth(df.groupby("month")["n_firms_vs_cf"].median())
+    firms_band = band("n_firms_vs_cf")
+    firms_lo_pct = round((firms_band["lo"][end] - 1) * 100)
+    firms_hi_pct = round((firms_band["hi"][end] - 1) * 100)
+    firm_view = dict(
+        y=[0.85, 1.95], ticks=[1.0, 1.2, 1.4, 1.6, 1.8], ref=1.0,
+        refLabel="no-AI counterfactual",
+        series=[
+            {"name": f"median +{round((firms_med[end] - 1) * 100)}%", "color": "#2f7561",
+             "values": firms_med, "hidden": False},
+            {"name": "", "color": "#2f7561", "values": firms_med, "hidden": True},
+            {"name": "", "color": "#2f7561", "values": firms_med, "hidden": True},
+        ],
+        band=firms_band,
+        ann=[],
+        metric="Number of tech companies, vs a world without AI (band = every run)",
+    )
+
     # Insert the measured input-price scene before the elasticity regroup.
     # AI line: Stanford AI Index 2025 — inference price at GPT-3.5-level
     # capability fell $20 -> $0.07 per million tokens, Nov 2022 -> Oct 2024
@@ -150,6 +171,8 @@ def build_payload() -> dict:
         metric="Measured input prices: AI output (fixed quality) vs U.S. wages",
         extras=price_extras,
     ))
+    # After the price insert: 7 = total employment, 8 = the open question.
+    views.insert(8, firm_view)
 
     # 8 — measured reality: the elasticity-evidence ratio, if data is pulled
     evidence = None
@@ -292,6 +315,19 @@ def build_payload() -> dict:
             f"about {tot_hi_pct}%. The difference isn't the technology. It's "
             f"whether cheaper design expands what gets designed.</p>")},
         {"view": 8, "html": (
+            f"<h3>Where new demand comes from</h3>"
+            f"<p>Part of the growth isn't existing companies doing more — it's "
+            f"<b>companies that wouldn't otherwise exist</b>. The model lets "
+            f"new firms form faster as design output gets cheaper, and every "
+            f"single run ends with more tech companies than the no-AI world — "
+            f"{firms_lo_pct}% to {firms_hi_pct}% more by 2035. Each one ships "
+            f"user-facing products. Each one consumes design.</p>"
+            f"<p class='note'>This mechanism entered the model as a hypothesis "
+            f"— <i>AI lets people start their own companies</i> — and the real "
+            f"world is already showing its fingerprint: new tech-company "
+            f"filings are running well above their 2023 pace. You'll see that "
+            f"measured line in a moment.</p>")},
+        {"view": 9, "html": (
             "<h3>So which world are we in?</h3>"
             "<p>Honestly: the historical data can't settle it. We tested the "
             "model against three years of job postings and government surveys "
